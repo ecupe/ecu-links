@@ -1,0 +1,87 @@
+body {
+    background-color: #14121c;
+    color: #f5f5f5;
+    font-family: 'Arial', sans-serif;
+    text-align: center;
+    margin: 0;
+    padding: 80px 20px;
+}
+
+h1 {
+    color: #e4e3e7;
+    font-size: 42px;
+}
+
+p {
+    color: #b8aec9;
+    font-size: 18px;
+}
+
+.link-button {
+    display: block;
+    max-width: 340px;
+    margin: 20px auto;
+    padding: 16px;
+    background-color: #d9c6ff;
+    color: #14121c;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+
+.profile-photo {
+    width: 140px;
+    height: 140px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 3px solid #d9c6ff;
+}
+
+
+.link-section {
+    max-width: 440px;
+    margin: 24px auto;
+    padding: 24px;
+    background-color: #201b2b;
+    border: 1px solid #3c324b;
+    border-radius: 18px;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.link-section:hover,
+.link-section:focus-within {
+    transform: translateY(-4px);
+    border-color: #d9c6ff;
+}
+
+.link-section h2 {
+    font-size: 22px;
+    margin: 0 0 16px;
+}
+
+.link-section .link-button {
+    max-width: none;
+    margin: 12px 0;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.link-section .link-button:hover,
+.link-section .link-button:focus-visible {
+    transform: scale(1.02);
+    background-color: #eee5ff;
+}
+
+
+.link-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.link-icon {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+}
