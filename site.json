@@ -1,0 +1,86 @@
+{
+  "name": "Mateo Amendano",
+  "tagline": "My music, socials, and contact links.",
+  "groups": [
+    [
+      "Latest Release",
+      [
+        [
+          "Amor Por Aquí, Amor Por Allá",
+          "https://youtu.be/T7tnSv8n5vs",
+          "youtube.svg"
+        ]
+      ]
+    ],
+    [
+      "Streaming Platforms",
+      [
+        [
+          "Spotify",
+          "https://open.spotify.com/artist/2KleWEK9fdpVfBsxdUkGIt",
+          "spotify.svg"
+        ],
+        [
+          "Apple Music",
+          "https://music.apple.com/us/artist/mateo-amendano/1572815738",
+          "applemusic.svg"
+        ]
+      ]
+    ],
+    [
+      "Socials",
+      [
+        [
+          "Instagram",
+          "https://instagram.com/mateoamendano",
+          "instagram.svg"
+        ],
+        [
+          "TikTok",
+          "https://tiktok.com/@mateoamendano",
+          "tiktok.svg"
+        ],
+        [
+          "YouTube",
+          "https://www.youtube.com/@mateoamendano",
+          "youtube.svg"
+        ],
+        [
+          "Twitter/X",
+          "https://x.com/mateoamendano",
+          "x.svg"
+        ]
+      ]
+    ]
+  ],
+  "tracks": [
+    {
+      "title": "Amor Por Aquí, Amor Por Allá",
+      "src": "audio/amor-por-aqui-amor-por-alla.mp3",
+      "cover": "images/covers/amor-por-aqui-amor-por-alla.jpg",
+      "accent": "#f5c7d4",
+      "duration": 183.170612
+    },
+    {
+      "title": "My Life",
+      "src": "audio/my-life.mp3",
+      "cover": "images/covers/my-life.jpg",
+      "accent": "#ffd2a3",
+      "duration": 174.733061
+    },
+    {
+      "title": "Millones Más",
+      "src": "audio/millones-mas.mp3",
+      "cover": "images/covers/millones-mas.jpg",
+      "accent": "#f7d58d",
+      "duration": 180.062041
+    },
+    {
+      "title": "Entre La Multitud",
+      "src": "audio/entre-la-multitud.mp3",
+      "cover": "images/covers/entre-la-multitud.png",
+      "accent": "#d8b5ff",
+      "duration": 185.49551
+    }
+  ]
+}
