@@ -14,6 +14,30 @@ off for visitors who ask for reduced motion.
 
 The preview server supports HTTP byte ranges so songs can seek correctly.
 
+## Features you switch on in `site.json`
+
+Run `py build.py` after any change below, then publish.
+
+- **Release countdown + pre-save**: fill `upcoming` (`title`, `release` as an ISO
+  date with time zone, optional `cover`, `presave`, `listen`) and set
+  `"enabled": true`. Before the date it shows a live countdown and the pre-save
+  button; after it, "Out now" with the listen link (falls back to `presave`).
+- **Visitor stats**: create a free site at goatcounter.com and put its code (the
+  part before `.goatcounter.com`) in `analytics.goatcounter`. Every link already
+  reports which one was clicked.
+- **Contact form**: create a free form at formspree.io and put its ID (the part
+  after `/f/`) in `contact.formspree`. Messages arrive in your email; the page
+  never shows your address.
+- **More from ECU**: the Discord tile appears once its URL is filled in (use an
+  invite that never expires).
+
+Always on: song sharing (each song gets a preview page in `s/<song>/`, and
+`?song=<slug>` opens the page with that song ready), a full-screen visualizer,
+a QR code for `site_url` (`images/qr.svg`, regenerated when `segno` is
+installed), light/dark mode, and the installable app (`manifest.webmanifest`,
+`sw.js`). When you publish changes to CSS or JS, raise `CACHE` in `sw.js`
+(`ecu-links-v3`, …) so installed copies refresh.
+
 ## Project structure
 
 - `site.json`: profile and playlist configuration.
@@ -21,6 +45,10 @@ The preview server supports HTTP byte ranges so songs can seek correctly.
 - `assets/css/site.css`: active page styles.
 - `assets/js/player.js`: playback, timeline, playlist, discography cards, and visualizer.
 - `assets/js/motion.js`: intro, reveals, parallax, tilt, magnetic button, and sparks.
+- `assets/js/features.js`: countdown, sharing and song links, QR sheet, theme,
+  contact form, app install, and the full-screen visualizer.
+- `s/`: generated share pages, one per song.
+- `manifest.webmanifest`, `sw.js`: installable app and offline shell.
 - `assets/js/i18n.js`: language selection, browser detection, saved preference,
   text bindings, and localized plural counts.
 - `locales/`: AI-translated English, Spanish, Portuguese (Brazil), French,

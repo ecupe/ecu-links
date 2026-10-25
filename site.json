@@ -1,6 +1,21 @@
 {
   "name": "Mateo Amendano",
   "tagline": "My music, socials, and contact links.",
+  "site_url": "https://ecupe.github.io/ecu-links/",
+  "upcoming": {
+    "enabled": false,
+    "title": "Next Single",
+    "release": "2026-12-12T00:00:00-05:00",
+    "cover": "",
+    "presave": "",
+    "listen": ""
+  },
+  "analytics": {
+    "goatcounter": ""
+  },
+  "contact": {
+    "formspree": ""
+  },
   "groups": [
     [
       "Latest Release",
@@ -49,6 +64,26 @@
           "Twitter/X",
           "https://x.com/mateoamendano",
           "x.svg"
+        ]
+      ]
+    ],
+    [
+      "More from ECU",
+      [
+        [
+          "GitHub",
+          "https://github.com/ecupe",
+          "github.svg"
+        ],
+        [
+          "Steam",
+          "https://steamcommunity.com/profiles/76561198855642672",
+          "steam.svg"
+        ],
+        [
+          "Discord · ECULAND",
+          "",
+          "discord.svg"
         ]
       ]
     ]

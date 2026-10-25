@@ -26,13 +26,14 @@
   const canvasContext = canvas.getContext("2d");
   const discography = byId("discography");
   const heroListen = byId("hero-listen");
-  const TRACK_IDLE = "rgba(255,255,255,.14)";
+  const TRACK_IDLE = "rgba(var(--tint),.14)";
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   const icons = {
     play:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>',
     pause:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>',
     volume:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/></svg>',
-    muted:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4zM16 9l5 6m0-6-5 6"/></svg>'
+    muted:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4zM16 9l5 6m0-6-5 6"/></svg>',
+    share:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M8 7l4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>'
   };
   let trackIndex = 0;
   let audioContext = null;
@@ -79,8 +80,9 @@
     player.classList.toggle("is-playing", playing);
     document.documentElement.classList.toggle("is-playing", playing);
     if (discography) {
-      Array.from(discography.children).forEach((card) => card.classList.toggle("is-playing", playing));
+      discography.querySelectorAll(".track-card").forEach((card) => card.classList.toggle("is-playing", playing));
     }
+    document.dispatchEvent(new CustomEvent("player:change"));
     playButton.innerHTML = playing ? icons.pause : icons.play;
     playButton.setAttribute("aria-pressed", String(playing));
     updatePlayLabels();
@@ -140,7 +142,7 @@
       button.setAttribute("aria-current", selected ? "true" : "false");
     });
     if (discography) {
-      Array.from(discography.children).forEach((card, index) => {
+      discography.querySelectorAll(".track-card").forEach((card, index) => {
         card.classList.toggle("is-current", index === trackIndex);
       });
     }
@@ -300,8 +302,13 @@
       button.setAttribute("aria-label", t("player.playTrack", { title: tracks[index].title }));
     });
     if (discography) {
-      Array.from(discography.children).forEach((card, index) => {
+      discography.querySelectorAll(".track-card").forEach((card, index) => {
         card.setAttribute("aria-label", t("player.playTrack", { title: tracks[index].title }));
+      });
+      discography.querySelectorAll(".track-share").forEach((button, index) => {
+        const label = t("share.song", { title: tracks[index].title });
+        button.setAttribute("aria-label", label);
+        button.title = label;
       });
     }
     updatePlayLabels();
@@ -359,7 +366,18 @@
       else if (index === trackIndex && audio.src) startPlayback();
       else loadTrack(index, true);
     });
-    discography.append(card);
+    // Share sits beside the card (a button can't live inside another button).
+    const share = document.createElement("button");
+    share.type = "button";
+    share.className = "track-share";
+    share.innerHTML = icons.share;
+    share.addEventListener("click", () => {
+      document.dispatchEvent(new CustomEvent("player:share", { detail: { index } }));
+    });
+    const item = document.createElement("div");
+    item.className = "track-item";
+    item.append(card, share);
+    discography.append(item);
   });
   if (heroListen) {
     heroListen.addEventListener("click", () => {
@@ -498,4 +516,17 @@
   }
   updateLanguage();
   resizeCanvas();
+
+  // Small surface for features.js (visualizer, sharing, song links).
+  window.ECUPlayer = Object.freeze({
+    tracks,
+    get index() { return trackIndex; },
+    get playing() { return !audio.paused && !audio.ended; },
+    get analyser() { return analyser; },
+    get accent() { return accent(); },
+    toggle() { if (audio.paused || audio.ended) startPlayback(); else audio.pause(); },
+    next() { loadTrack(trackIndex + 1, !audio.paused); },
+    previous() { previousButton.click(); },
+    select(index, autoplay = false) { if (index !== trackIndex) loadTrack(index, autoplay); }
+  });
 })();

@@ -226,6 +226,71 @@ class LocalizationBrowserTests(unittest.TestCase):
         self.assertEqual(page.locator("h1").text_content(), self.page.locator("h1").text_content())
         context.close()
 
+    def test_theme_qr_share_and_song_links(self):
+        self.page.click("#theme-toggle")
+        self.assertEqual(self.page.locator("html").get_attribute("data-theme"), "light")
+        self.page.reload()
+        self.assertEqual(self.page.locator("html").get_attribute("data-theme"), "light")
+        self.assertEqual(self.page.locator("#theme-toggle").get_attribute("aria-pressed"), "true")
+        self.page.click("#theme-toggle")
+        self.assertIsNone(self.page.locator("html").get_attribute("data-theme"))
+
+        self.page.click("#qr-open")
+        self.assertTrue(self.page.locator("#qr-dialog").evaluate("d => d.open"))
+        self.page.keyboard.press("Escape")
+        self.assertFalse(self.page.locator("#qr-dialog").evaluate("d => d.open"))
+
+        self.context.grant_permissions(["clipboard-read", "clipboard-write"])
+        self.page.locator(".track-item").nth(1).hover()
+        self.page.locator(".track-share").nth(1).click()
+        self.assertRegex(self.page.evaluate("navigator.clipboard.readText()"), r"/s/my-life/$")
+        self.assertEqual(self.page.locator("#toast").text_content(), "Link copied")
+
+        self.page.goto(self.url + "?song=millones-mas")
+        self.page.wait_for_function("document.querySelector('#track-title').textContent === 'Millones Más'")
+        self.assertTrue(self.page.locator("#music-audio").evaluate("a => a.paused"))
+        share_page = (ROOT / "s" / "millones-mas" / "index.html").read_text(encoding="utf-8")
+        self.assertIn("og:image", share_page)
+        self.assertIn("?song=millones-mas", share_page)
+
+    def test_visualizer_and_more_links(self):
+        self.page.evaluate("document.querySelector('#music-audio').volume = 0.01")
+        self.page.click("#play-button")
+        self.page.wait_for_function("!document.querySelector('#music-audio').paused")
+        self.page.click("#viz-open")
+        self.assertTrue(self.page.locator("#viz-dialog").evaluate("d => d.open"))
+        self.assertEqual(self.page.locator("#viz-title").text_content(), self.page.locator("#track-title").text_content())
+        self.page.click('[data-viz="next"]')
+        self.page.wait_for_function("document.querySelector('#viz-title').textContent === document.querySelector('#track-title').textContent && document.querySelector('#track-title').textContent === 'My Life'")
+        self.page.click('[data-viz="play"]')
+        self.page.wait_for_function("document.querySelector('#music-audio').paused")
+        self.page.keyboard.press("Escape")
+        self.assertFalse(self.page.locator("#viz-dialog").evaluate("d => d.open"))
+        more = self.page.locator(".more .link-button")
+        self.assertEqual([more.nth(i).text_content().split("Opens")[0].strip() for i in range(more.count())], ["GitHub", "Steam"])
+
+    def test_countdown_flips_to_out_now(self):
+        html = (ROOT / "index.html").read_text(encoding="utf-8")
+        card = ('<section class="link-section glass upcoming" data-reveal data-release="{}">'
+                '<div class="countdown" data-when="before"><b data-unit="days">00</b><b data-unit="hours">00</b>'
+                '<b data-unit="minutes">00</b><b data-unit="seconds">00</b></div>'
+                '<a class="upcoming-action presave" href="#p">p</a><a class="upcoming-action listen" href="#l">l</a></section>')
+        for release, out in (("2999-01-01T00:00:00Z", False), ("2001-01-01T00:00:00Z", True)):
+            with self.subTest(out=out):
+                page = self.context.new_page()
+                body = html.replace('<div id="links" class="sections-grid">', '<div id="links" class="sections-grid">' + card.format(release))
+                def serve(route, body=body):
+                    route.fulfill(status=200, content_type="text/html", body=body)
+                page.route(self.url, lambda route: serve(route))
+                page.goto(self.url)
+                page.wait_for_function("window.ECUPlayer")
+                self.assertEqual(page.locator(".upcoming").evaluate("e => e.classList.contains('is-out')"), out)
+                if not out:
+                    page.wait_for_function("document.querySelector('[data-unit=days]').textContent !== '00'")
+                self.assertEqual(page.locator(".upcoming-action.listen").is_visible(), out)
+                self.assertEqual(page.locator(".upcoming-action.presave").is_visible(), not out)
+                page.close()
+
     def test_mobile_layout_all_languages_and_local_file(self):
         for width in (300, 320, 375, 768):
             self.page.set_viewport_size({"width": width, "height": 900})
