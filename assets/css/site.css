@@ -13,7 +13,7 @@
   --ink-3:rgba(236,239,246,.42);
   --line:rgba(var(--tint),.08);
   --line-2:rgba(var(--tint),.14);
-  --glass:rgba(18,20,28,.52);
+  --glass:rgba(16,18,26,.68);
   --gold:#f5c84b;
   --blue:#4f86f7;
   --red:#ef4b55;
@@ -26,8 +26,6 @@
   --bg-glow:#0f1220;
   --panel:rgba(12,13,19,.72);
   --on-ink:#07080d;
-  --mouse-x:50%;
-  --mouse-y:30%;
   color-scheme:dark;
 }
 *,*::before,*::after{box-sizing:border-box}
@@ -76,10 +74,12 @@ a{color:inherit;text-decoration:none}
 
 /* ───────── Backdrop ───────── */
 .backdrop{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none;background:radial-gradient(120% 80% at 50% -10%,var(--bg-glow) 0%,var(--bg) 60%)}
-.aurora{position:absolute;width:62vmax;height:62vmax;border-radius:50%;filter:blur(90px);opacity:.38;mix-blend-mode:screen;will-change:transform}
-.aurora-gold{background:radial-gradient(circle,var(--gold),transparent 62%);top:-30vmax;left:-18vmax;animation:drift-a 26s ease-in-out infinite alternate}
-.aurora-blue{background:radial-gradient(circle,var(--blue),transparent 62%);top:10vmax;right:-28vmax;animation:drift-b 30s ease-in-out infinite alternate}
-.aurora-red{background:radial-gradient(circle,var(--red),transparent 62%);bottom:-34vmax;left:12vmax;opacity:.2;animation:drift-c 34s ease-in-out infinite alternate}
+/* Performance: the glows are soft gradients (no blur filter, no blend mode) that drift with
+   transform only, so the compositor moves them without repainting the page. */
+.aurora{position:absolute;width:70vmax;height:70vmax;border-radius:50%;opacity:.3;will-change:transform;contain:strict}
+.aurora-gold{background:radial-gradient(circle,rgba(245,200,75,.9) 0%,rgba(245,200,75,.35) 30%,transparent 68%);top:-34vmax;left:-22vmax;animation:drift-a 26s ease-in-out infinite alternate}
+.aurora-blue{background:radial-gradient(circle,rgba(79,134,247,.9) 0%,rgba(79,134,247,.35) 30%,transparent 68%);top:8vmax;right:-32vmax;animation:drift-b 30s ease-in-out infinite alternate}
+.aurora-red{background:radial-gradient(circle,rgba(239,75,85,.9) 0%,rgba(239,75,85,.35) 30%,transparent 68%);bottom:-38vmax;left:10vmax;opacity:.16;animation:drift-c 34s ease-in-out infinite alternate}
 @keyframes drift-a{to{transform:translate3d(14vmax,10vmax,0) scale(1.15)}}
 @keyframes drift-b{to{transform:translate3d(-12vmax,8vmax,0) scale(.9)}}
 @keyframes drift-c{to{transform:translate3d(10vmax,-12vmax,0) scale(1.1)}}
@@ -90,15 +90,9 @@ a{color:inherit;text-decoration:none}
   -webkit-mask-image:radial-gradient(70% 55% at 50% 20%,#000 0%,transparent 75%);
           mask-image:radial-gradient(70% 55% at 50% 20%,#000 0%,transparent 75%);
 }
-.spotlight{position:absolute;inset:0;background:radial-gradient(600px circle at var(--mouse-x) var(--mouse-y),rgba(var(--tint),.055),transparent 60%);transition:opacity .4s}
 .grain{
-  position:absolute;inset:-50%;opacity:.07;
+  position:absolute;inset:0;opacity:.06;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  animation:grain 1.2s steps(6) infinite;
-}
-@keyframes grain{
-  0%,100%{transform:translate(0,0)}20%{transform:translate(-4%,3%)}40%{transform:translate(3%,-5%)}
-  60%{transform:translate(-6%,-2%)}80%{transform:translate(5%,4%)}
 }
 .sparks{position:fixed;inset:0;width:100%;height:100%;z-index:60;pointer-events:none}
 
@@ -107,10 +101,10 @@ a{color:inherit;text-decoration:none}
   position:fixed;top:0;left:0;right:0;z-index:40;
   display:flex;align-items:center;justify-content:space-between;gap:16px;
   padding:max(14px,env(safe-area-inset-top)) clamp(16px,4vw,40px) 14px;
-  transition:background .5s var(--ease),border-color .5s,backdrop-filter .5s;
+  transition:background-color .5s var(--ease),border-color .5s;
   border-bottom:1px solid transparent;
 }
-.topbar.is-scrolled{background:rgba(var(--bg-rgb),.66);border-color:var(--line);backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%)}
+.topbar.is-scrolled{background:rgba(var(--bg-rgb),.66);border-color:var(--line);backdrop-filter:blur(16px) saturate(160%);-webkit-backdrop-filter:blur(16px) saturate(160%)}
 .brand{display:inline-flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.32em;font-size:13px}
 .brand-mark{width:26px;height:26px}
 .brand:hover .blade-2{transform:scaleX(1.18)}
@@ -138,20 +132,24 @@ a{color:inherit;text-decoration:none}
 .avatar picture{display:contents}
 .avatar-ring{
   position:absolute;inset:0;border-radius:50%;
-  background:conic-gradient(from var(--angle),var(--gold),var(--blue),var(--red),var(--gold));
-  animation:spin-angle 6s linear infinite;
+  background:conic-gradient(var(--gold),var(--blue),var(--red),var(--gold));
   -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2.5px));
           mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2.5px));
+  animation:spin 6s linear infinite;will-change:transform;
 }
-.avatar-ring::after{content:"";position:absolute;inset:-14px;border-radius:50%;background:inherit;filter:blur(26px);opacity:.45;z-index:-1}
+/* The halo is its own blurred layer, rasterized once and rotated on the compositor. */
+.avatar-glow{position:absolute;inset:-12px;border-radius:50%;z-index:-1;background:conic-gradient(var(--gold),var(--blue),var(--red),var(--gold));filter:blur(24px);opacity:.42;animation:spin 6s linear infinite;will-change:transform}
 @keyframes spin-angle{to{--angle:360deg}}
 .profile-photo{width:138px;height:138px;border-radius:50%;object-fit:cover;position:relative;box-shadow:0 30px 80px -20px rgba(0,0,0,.9)}
 .avatar-live{position:absolute;right:6px;bottom:8px;display:flex;align-items:flex-end;gap:2px;height:30px;width:30px;padding:7px 7px;border-radius:50%;background:var(--bg-2);border:1px solid var(--line-2);transform:scale(0);transition:transform .5s var(--spring)}
-.avatar-live i{flex:1;background:var(--track-accent);border-radius:2px;height:30%;animation:eq 1s ease-in-out infinite}
-.avatar-live i:nth-child(2){animation-delay:-.35s}
-.avatar-live i:nth-child(3){animation-delay:-.7s}
+.avatar-live i{flex:1;background:var(--track-accent);border-radius:2px;height:100%}
 html.is-playing .avatar-live{transform:scale(1)}
-@keyframes eq{0%,100%{height:25%}50%{height:100%}}
+/* Equalizer bars scale instead of changing height, so they never trigger layout. */
+.avatar-live i,.cta-eq i,.track-eq i{transform-origin:50% 100%;animation:eq 1s ease-in-out infinite;animation-play-state:paused}
+.avatar-live i:nth-child(2),.cta-eq i:nth-child(2),.track-eq i:nth-child(2){animation-delay:-.35s}
+.avatar-live i:nth-child(3),.cta-eq i:nth-child(3),.track-eq i:nth-child(3){animation-delay:-.7s}
+html.is-playing .avatar-live i,html.is-playing .cta-eq i,.track-card.is-playing .track-eq i{animation-play-state:running}
+@keyframes eq{0%,100%{transform:scaleY(.25)}50%{transform:scaleY(1)}}
 .eyebrow{margin:0 0 18px;font-size:12px;font-weight:600;letter-spacing:.32em;text-transform:uppercase;color:var(--ink-3)}
 .hero-title{
   margin:0;font-weight:700;letter-spacing:-.045em;line-height:.98;
@@ -163,9 +161,10 @@ html.is-playing .avatar-live{transform:scale(1)}
   background:linear-gradient(100deg,#fff 0%,#f1f2f6 36%,#a7abb8 47%,#fff 56%,#c3c6d0 100%);
   background-size:240% 100%;background-position:100% 0;
   -webkit-background-clip:text;background-clip:text;color:transparent;
-  animation:sheen 7s var(--ease) 1s infinite;
+  animation:sheen 9s var(--ease) 1s infinite;
 }
-@keyframes sheen{0%{background-position:100% 0}45%,100%{background-position:-30% 0}}
+/* The sweep runs for 2.4 s out of every 9 s; the title stays still (no repaint) in between. */
+@keyframes sheen{0%{background-position:100% 0}27%,100%{background-position:-30% 0}}
 .hero-title .word{display:inline-block;white-space:nowrap}
 .hero-title .char{display:inline-block}
 .hero-subtitle{margin:22px auto 0;max-width:34ch;font-size:clamp(16px,2.1vw,21px);line-height:1.5;color:var(--ink-2);font-weight:400}
@@ -173,7 +172,7 @@ html.is-playing .avatar-live{transform:scale(1)}
 .cta{
   position:relative;display:inline-flex;align-items:center;gap:10px;height:54px;padding:0 28px 0 24px;
   border:0;border-radius:999px;cursor:pointer;isolation:isolate;
-  background:var(--ink);color:var(--on-ink);font-weight:600;font-size:15px;letter-spacing:-.01em;
+  background:transparent;color:var(--on-ink);font-weight:600;font-size:15px;letter-spacing:-.01em;
   box-shadow:0 18px 50px -18px rgba(245,200,75,.55),inset 0 -2px 0 rgba(0,0,0,.08);
   transition:transform .5s var(--spring),box-shadow .5s var(--ease);
 }
@@ -181,12 +180,13 @@ html.is-playing .avatar-live{transform:scale(1)}
 .cta:hover{box-shadow:0 24px 70px -18px rgba(245,200,75,.75)}
 .cta:hover svg{transform:scale(1.18)}
 .cta:active{transform:scale(.96)!important}
-.cta-glow{position:absolute;inset:-2px;border-radius:inherit;z-index:-1;background:conic-gradient(from var(--angle),var(--gold),var(--blue),var(--red),var(--gold));filter:blur(14px);opacity:.55;animation:spin-angle 4s linear infinite}
+/* Solid face painted above the glow, so the glow only shows around the edge. */
+.cta::after{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;background:var(--ink)}
+.cta-glow{position:absolute;inset:-3px;border-radius:inherit;z-index:-1;background:linear-gradient(90deg,var(--gold),var(--red) 50%,var(--blue));filter:blur(16px);opacity:.5;animation:breathe 4s ease-in-out infinite;will-change:opacity,transform}
+@keyframes breathe{50%{opacity:.8;transform:scale(1.04)}}
 .cta-icon{position:relative;display:grid;place-items:center;width:18px;height:18px}
 .cta-eq{position:absolute;inset:1px;display:flex;align-items:flex-end;gap:2px;transform:scale(0);transition:transform .5s var(--spring)}
-.cta-eq i{flex:1;background:currentColor;border-radius:1px;animation:eq 1s ease-in-out infinite}
-.cta-eq i:nth-child(2){animation-delay:-.35s}
-.cta-eq i:nth-child(3){animation-delay:-.7s}
+.cta-eq i{flex:1;height:100%;background:currentColor;border-radius:1px}
 html.is-playing .cta svg{transform:scale(0)}
 html.is-playing .cta-eq{transform:scale(1)}
 .scroll-cue{position:absolute;bottom:4px;left:50%;width:26px;height:42px;margin-left:-13px;border:1.5px solid var(--line-2);border-radius:999px}
@@ -195,19 +195,14 @@ html.is-playing .cta-eq{transform:scale(1)}
 
 /* ───────── Sections ───────── */
 .sections-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:18px;scroll-margin-top:90px}
+/* Cards use a tinted translucent fill instead of backdrop-filter: blurring the moving
+   background behind every card on every frame was the main source of lag. */
 .glass{
-  background:linear-gradient(180deg,rgba(var(--tint),.055),rgba(var(--tint),.02)) ,var(--glass);
+  background:linear-gradient(180deg,rgba(var(--tint),.06),rgba(var(--tint),.02)),var(--glass);
   border:1px solid var(--line);
-  backdrop-filter:blur(24px) saturate(150%);-webkit-backdrop-filter:blur(24px) saturate(150%);
   box-shadow:0 1px 0 rgba(var(--tint),.06) inset,0 40px 80px -40px rgba(0,0,0,.8);
 }
-.link-section{position:relative;border-radius:var(--radius);padding:26px;overflow:hidden;isolation:isolate}
-/* Cursor-following light inside each card */
-.link-section::before{
-  content:"";position:absolute;inset:0;z-index:-1;opacity:0;transition:opacity .5s;
-  background:radial-gradient(420px circle at var(--mx,50%) var(--my,50%),rgba(var(--tint),.07),transparent 65%);
-}
-.link-section:hover::before{opacity:1}
+.link-section{position:relative;border-radius:var(--radius);padding:26px;overflow:hidden;isolation:isolate;contain:layout paint}
 .featured{grid-column:span 7}
 .streaming{grid-column:span 5}
 .socials{grid-column:span 12}
@@ -266,17 +261,18 @@ html.is-playing .cta-eq{transform:scale(1)}
   position:relative;display:flex;align-items:center;gap:14px;min-height:72px;padding:14px 18px 14px 14px;
   border-radius:20px;overflow:hidden;isolation:isolate;
   background:rgba(var(--tint),.035);border:1px solid var(--line);
-  transition:transform .55s var(--spring),border-color .4s,background .4s,box-shadow .6s var(--ease);
-  will-change:transform;
+  transition:transform .55s var(--spring),border-color .4s,background-color .4s,box-shadow .6s var(--ease);
 }
-/* animated conic border, only while hovered */
+/* Animated conic border. It only runs while the tile is hovered or focused;
+   eight hidden borders spinning nonstop cost a repaint every frame. */
 .link-button::before{
   content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;z-index:-1;
   background:conic-gradient(from var(--angle),transparent 0 55%,var(--brand) 75%,#fff 80%,transparent 90%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
   -webkit-mask-composite:xor;mask-composite:exclude;
-  opacity:0;transition:opacity .4s;animation:spin-angle 3.2s linear infinite;
+  opacity:0;transition:opacity .4s;animation:spin-angle 3.2s linear infinite;animation-play-state:paused;
 }
+.link-button:hover::before,.link-button:focus-visible::before{animation-play-state:running}
 .link-button::after{
   content:"";position:absolute;inset:0;z-index:-2;opacity:0;transition:opacity .5s;
   background:radial-gradient(240px circle at var(--mx,50%) var(--my,50%),color-mix(in srgb,var(--brand) 22%,transparent),transparent 70%);
@@ -322,9 +318,7 @@ html.is-playing .cta-eq{transform:scale(1)}
 .track-play svg{width:18px;height:18px;fill:currentColor}
 .track-card:hover .track-play,.track-card:focus-visible .track-play,.track-card.is-current .track-play{transform:none;opacity:1}
 .track-eq{display:none;align-items:flex-end;gap:2px;width:16px;height:16px}
-.track-eq i{flex:1;background:#07080d;border-radius:1px;animation:eq 1s ease-in-out infinite}
-.track-eq i:nth-child(2){animation-delay:-.35s}
-.track-eq i:nth-child(3){animation-delay:-.7s}
+.track-eq i{flex:1;height:100%;background:#07080d;border-radius:1px}
 .track-card.is-current.is-playing .track-eq{display:flex}
 .track-card.is-current.is-playing .track-play svg{display:none}
 .track-card.is-current{border-color:color-mix(in srgb,var(--accent) 45%,transparent)}
@@ -341,8 +335,8 @@ html.is-playing .cta-eq{transform:scale(1)}
 .site-footer{margin:0;font-size:12px;letter-spacing:.08em;color:var(--ink-3)}
 
 /* ───────── Reveal choreography ───────── */
-.js [data-reveal]{opacity:0;transform:translateY(34px) scale(.985);filter:blur(10px);transition:opacity 1.1s var(--ease),transform 1.1s var(--ease),filter 1.1s var(--ease);transition-delay:var(--d,0s)}
-.js [data-reveal].is-in{opacity:1;transform:none;filter:none}
+.js [data-reveal]{opacity:0;transform:translate3d(0,34px,0) scale(.985);transition:opacity 1.1s var(--ease),transform 1.1s var(--ease);transition-delay:var(--d,0s)}
+.js [data-reveal].is-in{opacity:1;transform:none}
 .js .hero-title .char{transform:translateY(105%) rotate(6deg);opacity:0;transition:transform 1s var(--ease),opacity .8s var(--ease);transition-delay:var(--d,0s)}
 .js .hero-title.is-in .char{transform:none;opacity:1}
 .js .hero-title .word{overflow:hidden;padding-bottom:.08em;margin-bottom:-.08em}
@@ -361,7 +355,7 @@ html.is-playing .cta-eq{transform:scale(1)}
 .music-player,.playlist-panel{
   border-radius:26px;
   background:linear-gradient(180deg,rgba(var(--tint),.07),rgba(var(--tint),.02)),var(--panel);
-  backdrop-filter:blur(30px) saturate(180%);-webkit-backdrop-filter:blur(30px) saturate(180%);
+  backdrop-filter:blur(18px) saturate(170%);-webkit-backdrop-filter:blur(18px) saturate(170%);
   border:1px solid var(--line-2);
   box-shadow:0 30px 80px -20px rgba(0,0,0,.85),0 1px 0 rgba(var(--tint),.08) inset;
 }
@@ -459,8 +453,7 @@ html.is-playing .cta-eq{transform:scale(1)}
 .track-item .track-card{width:100%;height:100%}
 .track-share{
   position:absolute;top:18px;right:18px;z-index:2;display:grid;place-items:center;width:36px;height:36px;border-radius:50%;
-  border:1px solid rgba(255,255,255,.25);background:rgba(10,11,16,.55);color:#fff;cursor:pointer;
-  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border:1px solid rgba(255,255,255,.25);background:rgba(10,11,16,.72);color:#fff;cursor:pointer;
   opacity:0;transform:scale(.85);transition:opacity .3s,transform .45s var(--spring),background .3s;
 }
 [dir="rtl"] .track-share{right:auto;left:18px}
@@ -526,7 +519,7 @@ html.is-playing .cta-eq{transform:scale(1)}
 
 /* ───────── Sheets ───────── */
 dialog{color:var(--ink)}
-dialog::backdrop{background:rgba(0,0,0,.55);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+dialog::backdrop{background:rgba(0,0,0,.62);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .sheet{
   width:min(380px,calc(100% - 32px));padding:30px 26px 26px;border-radius:28px;border:1px solid var(--line-2);
   background:var(--bg-2);text-align:center;box-shadow:0 40px 100px -20px rgba(0,0,0,.8);
@@ -585,10 +578,10 @@ dialog::backdrop{background:rgba(0,0,0,.55);backdrop-filter:blur(10px);-webkit-b
   --bg:#f5f5f7;--bg-2:#ffffff;--bg-rgb:245,245,247;--bg-glow:#ffffff;
   --ink:#1d1d1f;--ink-2:rgba(29,29,31,.68);--ink-3:rgba(29,29,31,.46);
   --line:rgba(0,0,0,.08);--line-2:rgba(0,0,0,.13);
-  --glass:rgba(255,255,255,.62);--panel:rgba(255,255,255,.74);
+  --glass:rgba(255,255,255,.74);--panel:rgba(255,255,255,.74);
   --tint:0,0,0;--on-ink:#ffffff;
 }
-[data-theme="light"] .aurora{mix-blend-mode:multiply;opacity:.22}
+[data-theme="light"] .aurora{opacity:.18}
 [data-theme="light"] .grain{opacity:.035}
 [data-theme="light"] .glass{box-shadow:0 1px 0 rgba(255,255,255,.8) inset,0 30px 70px -40px rgba(0,0,0,.25)}
 [data-theme="light"] .music-player,[data-theme="light"] .playlist-panel{box-shadow:0 30px 80px -24px rgba(0,0,0,.3),0 1px 0 rgba(255,255,255,.9) inset}
@@ -599,6 +592,13 @@ dialog::backdrop{background:rgba(0,0,0,.55);backdrop-filter:blur(10px);-webkit-b
 [data-theme="light"] .sheet{box-shadow:0 40px 100px -30px rgba(0,0,0,.35)}
 [data-theme="light"] dialog::backdrop{background:rgba(245,245,247,.5)}
 html.theme-shift,html.theme-shift *{transition:background-color .6s var(--ease),color .6s var(--ease),border-color .6s var(--ease),fill .6s,box-shadow .6s!important}
+
+/* ───────── Lite mode ─────────
+   Set before first paint on low-memory / few-core devices or Data Saver: the page keeps its
+   look but drops the purely ambient motion. */
+.lite .aurora,.lite .avatar-ring,.lite .cta-glow{animation:none}
+.lite .avatar-glow,.lite .grain{display:none}
+.lite .hero-title.sheen{animation-iteration-count:1}
 
 /* ───────── Responsive ───────── */
 @media (max-width:900px){
@@ -662,6 +662,7 @@ html.theme-shift,html.theme-shift *{transition:background-color .6s var(--ease),
   .upcoming{flex-direction:column;align-items:flex-start;gap:18px;padding:20px}
   .upcoming-art{width:100%;height:150px}
   .countdown{gap:8px;width:100%}
+  .upcoming-copy{width:100%}
   .count-unit{flex:1;min-width:0}
   .count-unit b{font-size:24px}
   .more .link-list{grid-template-columns:1fr}
@@ -693,7 +694,7 @@ html.theme-shift,html.theme-shift *{transition:background-color .6s var(--ease),
   html{scroll-behavior:auto}
   *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
   .js .intro{display:none}
-  .avatar-ring,.cta-glow{animation:none}
+  .avatar-ring,.avatar-glow,.cta-glow{animation:none}
   .grain,.aurora{animation:none}
   .js [data-reveal],.js .hero-title .char{opacity:1;transform:none;filter:none}
   .js .player-dock{transform:translate(-50%,0);opacity:1}

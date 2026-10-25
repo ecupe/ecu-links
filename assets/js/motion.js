@@ -99,12 +99,15 @@
   const topbar = document.querySelector(".topbar");
   const hero = document.querySelector(".hero");
   let scrollFrame = 0;
+  let revealTimer = 0;
   function onScroll() {
     scrollFrame = 0;
     const y = window.scrollY;
     if (topbar) topbar.classList.toggle("is-scrolled", y > 12);
     root.classList.toggle("dock-on", y > 60);
-    if (pending.length) window.setTimeout(revealVisible, 400);
+    if (pending.length && !revealTimer) {
+      revealTimer = window.setTimeout(() => { revealTimer = 0; revealVisible(); }, 400);
+    }
     if (hero && !reduced) {
       const progress = Math.min(1, Math.max(0, y / (hero.offsetHeight * 0.9)));
       hero.style.transform = "translateY(" + (progress * 60).toFixed(1) + "px) scale(" + (1 - progress * 0.06).toFixed(3) + ")";
@@ -120,28 +123,44 @@
 
   /* ── Cursor light on cards and tiles ─────────────────────── */
   if (finePointer) {
+    // Pointer effects read layout once per frame at most, and only for the hovered element.
+    let lightFrame = 0;
+    let lightEvent = null;
     document.addEventListener("pointermove", (event) => {
-      const card = event.target.closest(".link-section, .link-button");
-      if (!card) return;
-      [card, card.closest(".link-section")].forEach((element) => {
-        if (!element) return;
-        const box = element.getBoundingClientRect();
-        element.style.setProperty("--mx", (event.clientX - box.left) + "px");
-        element.style.setProperty("--my", (event.clientY - box.top) + "px");
+      lightEvent = event;
+      if (lightFrame) return;
+      lightFrame = window.requestAnimationFrame(() => {
+        lightFrame = 0;
+        const tile = lightEvent.target.closest && lightEvent.target.closest(".link-button");
+        if (!tile) return;
+        const box = tile.getBoundingClientRect();
+        tile.style.setProperty("--mx", (lightEvent.clientX - box.left).toFixed(0) + "px");
+        tile.style.setProperty("--my", (lightEvent.clientY - box.top).toFixed(0) + "px");
       });
     }, { passive: true });
 
     /* 3D tilt */
     document.querySelectorAll("[data-tilt]").forEach((element) => {
+      let tiltFrame = 0;
+      let box = null;
+      element.addEventListener("pointerenter", () => { box = element.getBoundingClientRect(); });
       element.addEventListener("pointermove", (event) => {
-        const box = element.getBoundingClientRect();
-        const x = (event.clientX - box.left) / box.width - 0.5;
-        const y = (event.clientY - box.top) / box.height - 0.5;
-        element.classList.add("is-tilting");
-        element.style.setProperty("--ry", (x * 10).toFixed(2) + "deg");
-        element.style.setProperty("--rx", (-y * 10).toFixed(2) + "deg");
+        if (tiltFrame) return;
+        const { clientX, clientY } = event;
+        tiltFrame = window.requestAnimationFrame(() => {
+          tiltFrame = 0;
+          box = box || element.getBoundingClientRect();
+          const x = (clientX - box.left) / box.width - 0.5;
+          const y = (clientY - box.top) / box.height - 0.5;
+          element.classList.add("is-tilting");
+          element.style.setProperty("--ry", (x * 10).toFixed(2) + "deg");
+          element.style.setProperty("--rx", (-y * 10).toFixed(2) + "deg");
+        });
       });
       element.addEventListener("pointerleave", () => {
+        if (tiltFrame) window.cancelAnimationFrame(tiltFrame);
+        tiltFrame = 0;
+        box = null;
         element.classList.remove("is-tilting");
         element.style.setProperty("--rx", "0deg");
         element.style.setProperty("--ry", "0deg");

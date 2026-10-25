@@ -24,6 +24,11 @@
     document.documentElement.classList.add("js");
     // Apply the saved theme before first paint so light mode never flashes dark.
     try { if (localStorage.getItem("ecu-theme") === "light") document.documentElement.dataset.theme = "light"; } catch (_) {}
+    // Lite mode: drop ambient motion on low-end devices or when Data Saver is on.
+    var conn = navigator.connection || {};
+    if ((navigator.deviceMemory && navigator.deviceMemory <= 2) || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2) || conn.saveData) {
+      document.documentElement.classList.add("lite");
+    }
   </script>
 </head>
 <body>
@@ -42,7 +47,6 @@
     <div class="aurora aurora-blue"></div>
     <div class="aurora aurora-red"></div>
     <div class="grid-lines"></div>
-    <div class="spotlight"></div>
     <div class="grain"></div>
   </div>
   <canvas id="sparks" class="sparks" aria-hidden="true"></canvas>
@@ -77,6 +81,7 @@
   <main id="top" class="site-shell">
     <header class="hero">
       <div class="avatar" data-reveal>
+        <span class="avatar-glow" aria-hidden="true"></span>
         <span class="avatar-ring" aria-hidden="true"></span>
         <picture>
           <source srcset="images/profile-320.webp 1x, images/profile-640.webp 2x" type="image/webp">

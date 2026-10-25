@@ -1,7 +1,7 @@
 // Offline shell for the installable app. Pages are network-first (fresh when online),
 // static assets are served from cache and refreshed in the background, and songs
 // always stream from the network (they use range requests and are large).
-const CACHE = "ecu-links-v3";
+const CACHE = "ecu-links-v4";
 const SHELL = [
   "./",
   "index.html",
@@ -19,7 +19,7 @@ const SHELL = [
   "images/covers/amor-por-aqui-amor-por-alla.jpg",
   "images/covers/my-life.jpg",
   "images/covers/millones-mas.jpg",
-  "images/covers/entre-la-multitud.png",
+  "images/covers/entre-la-multitud-600.jpg",
 ];
 
 self.addEventListener("install", (event) => {

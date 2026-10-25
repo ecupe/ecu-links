@@ -484,22 +484,6 @@
     observer.observe(canvas);
   }
 
-  let pointerFrame = 0;
-  let pointerX = 50;
-  let pointerY = 35;
-  window.addEventListener("pointermove", (event) => {
-    if (reducedMotion.matches || event.pointerType === "touch") return;
-    pointerX = event.clientX / window.innerWidth * 100;
-    pointerY = event.clientY / window.innerHeight * 100;
-    if (!pointerFrame) {
-      pointerFrame = window.requestAnimationFrame(() => {
-        document.documentElement.style.setProperty("--mouse-x", pointerX + "%");
-        document.documentElement.style.setProperty("--mouse-y", pointerY + "%");
-        pointerFrame = 0;
-      });
-    }
-  }, { passive:true });
-
   audio.volume = 0.45;
   syncVolume();
   if (tracks.length) {
