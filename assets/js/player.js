@@ -24,6 +24,9 @@
   const queueList = byId("playlist-items");
   const canvas = byId("waveform");
   const canvasContext = canvas.getContext("2d");
+  const discography = byId("discography");
+  const heroListen = byId("hero-listen");
+  const TRACK_IDLE = "rgba(255,255,255,.14)";
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   const icons = {
     play:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>',
@@ -63,9 +66,21 @@
     label.textContent = t(!tracks.length ? "player.comingSoon" : (playing ? "player.playing" : "player.ready"));
   }
 
+  function accent() {
+    return (tracks[trackIndex] && tracks[trackIndex].accent) || "#f5c84b";
+  }
+
+  function paintSeek(percentage) {
+    seek.style.background = "linear-gradient(90deg," + accent() + " " + percentage + "%," + TRACK_IDLE + " " + percentage + "%)";
+  }
+
   function syncPlayState() {
     const playing = !audio.paused && !audio.ended;
     player.classList.toggle("is-playing", playing);
+    document.documentElement.classList.toggle("is-playing", playing);
+    if (discography) {
+      Array.from(discography.children).forEach((card) => card.classList.toggle("is-playing", playing));
+    }
     playButton.innerHTML = playing ? icons.pause : icons.play;
     playButton.setAttribute("aria-pressed", String(playing));
     updatePlayLabels();
@@ -124,6 +139,11 @@
       button.classList.toggle("is-current", selected);
       button.setAttribute("aria-current", selected ? "true" : "false");
     });
+    if (discography) {
+      Array.from(discography.children).forEach((card, index) => {
+        card.classList.toggle("is-current", index === trackIndex);
+      });
+    }
   }
 
   function loadTrack(index, autoplay) {
@@ -141,12 +161,12 @@
     artist.textContent = track.artist || data.name;
     cover.hidden = !track.cover;
     if (track.cover) cover.src = track.cover;
-    document.documentElement.style.setProperty("--track-accent", track.accent || "#d6c4ff");
+    document.documentElement.style.setProperty("--track-accent", track.accent || "#f5c84b");
     elapsed.textContent = "0:00";
     duration.textContent = formatTime(track.duration || 0);
     seek.value = "0";
     seek.disabled = true;
-    seek.style.background = "rgba(233,220,255,.19)";
+    seek.style.background = TRACK_IDLE;
     updateTimeLabel();
     setStatus();
     updateQueue();
@@ -163,7 +183,7 @@
       duration.textContent = formatTime(total);
       const percentage = Math.max(0, Math.min(100, current / total * 100));
       seek.value = String(Math.round(percentage * 10));
-      seek.style.background = "linear-gradient(90deg,#e5d6ff " + percentage + "%,rgba(233,220,255,.19) " + percentage + "%)";
+      paintSeek(percentage);
       updateTimeLabel();
       seek.disabled = false;
     }
@@ -206,7 +226,7 @@
     const center = canvasHeight / 2;
     if (!live || !analyser || !waveformData || audio.muted || audio.volume === 0) {
       canvasContext.beginPath();
-      canvasContext.strokeStyle = "rgba(221,202,250,.25)";
+      canvasContext.strokeStyle = "rgba(255,255,255,.18)";
       canvasContext.lineWidth = 1;
       canvasContext.moveTo(0, center);
       canvasContext.lineTo(canvasWidth, center);
@@ -215,9 +235,9 @@
     }
     analyser.getByteTimeDomainData(waveformData);
     const gradient = canvasContext.createLinearGradient(0, 0, canvasWidth, 0);
-    gradient.addColorStop(0, "#b9eef0");
-    gradient.addColorStop(0.5, "#d7b9fa");
-    gradient.addColorStop(1, "#ffd0df");
+    gradient.addColorStop(0, "#f5c84b");
+    gradient.addColorStop(0.5, accent());
+    gradient.addColorStop(1, "#4f86f7");
     const factors = [0.35, 0.65, 1];
     factors.forEach((factor, layer) => {
       canvasContext.beginPath();
@@ -279,6 +299,11 @@
     Array.from(queueList.children).forEach((button, index) => {
       button.setAttribute("aria-label", t("player.playTrack", { title: tracks[index].title }));
     });
+    if (discography) {
+      Array.from(discography.children).forEach((card, index) => {
+        card.setAttribute("aria-label", t("player.playTrack", { title: tracks[index].title }));
+      });
+    }
     updatePlayLabels();
     updateMuteLabel();
     // Translate the displayed preview, preserving an in-progress scrub.
@@ -315,7 +340,33 @@
       setQueueOpen(false);
     });
     queueList.append(button);
+
+    if (!discography) return;
+    const card = document.createElement("button");
+    card.type = "button";
+    card.className = "track-card";
+    card.style.setProperty("--accent", track.accent || "#f5c84b");
+    card.setAttribute("aria-label", t("player.playTrack", { title: track.title }));
+    card.innerHTML = '<span class="track-cover-wrap"><img class="track-cover" alt="" loading="lazy" width="240" height="240">'
+      + '<span class="track-play" aria-hidden="true">' + icons.play + '<span class="track-eq"><i></i><i></i><i></i></span></span></span>'
+      + '<span class="track-meta"><span class="track-name"></span><span class="track-time"></span></span>';
+    card.querySelector(".track-cover").src = track.cover || "";
+    card.querySelector(".track-name").textContent = track.title;
+    card.querySelector(".track-time").textContent = formatTime(track.duration || 0);
+    // Tapping the playing song pauses it; any other song starts from the top.
+    card.addEventListener("click", () => {
+      if (index === trackIndex && !audio.paused) audio.pause();
+      else if (index === trackIndex && audio.src) startPlayback();
+      else loadTrack(index, true);
+    });
+    discography.append(card);
   });
+  if (heroListen) {
+    heroListen.addEventListener("click", () => {
+      if (audio.paused || audio.ended) startPlayback();
+      else audio.pause();
+    });
+  }
 
   playButton.addEventListener("click", () => {
     if (audio.paused || audio.ended) startPlayback();
@@ -350,7 +401,7 @@
     scrubbing = true;
     const fraction = Math.max(0, Math.min(1, Number(seek.value) / 1000));
     elapsed.textContent = formatTime(fraction * audio.duration);
-    seek.style.background = "linear-gradient(90deg,#e5d6ff " + fraction * 100 + "%,rgba(233,220,255,.19) " + fraction * 100 + "%)";
+    paintSeek(fraction * 100);
     updateTimeLabel();
   });
   function commitSeek() {
@@ -436,7 +487,9 @@
   if (tracks.length) {
     loadTrack(0, false);
   } else {
-    [playButton, previousButton, nextButton, queueToggle, seek, volume, muteButton].forEach((element) => { element.disabled = true; });
+    [playButton, previousButton, nextButton, queueToggle, seek, volume, muteButton, heroListen].forEach((element) => {
+      if (element) element.disabled = true;
+    });
     title.textContent = t("player.heading");
     artist.textContent = data.name;
     label.textContent = t("player.comingSoon");

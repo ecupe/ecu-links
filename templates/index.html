@@ -3,31 +3,101 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#100d1c">
+  <meta name="theme-color" content="#05060a">
+  <meta name="color-scheme" content="dark">
   <meta name="description" content="__DESCRIPTION__" data-i18n-content="meta.description">
+  <meta property="og:title" content="__NAME__">
+  <meta property="og:description" content="__DESCRIPTION__">
+  <meta property="og:image" content="images/og-card.jpg">
+  <meta name="twitter:card" content="summary_large_image">
   <title data-i18n="meta.title">__NAME__ | Music &amp; Links</title>
+  <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+  <link rel="preload" href="assets/fonts/sora-0.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="images/profile-320.webp" as="image" type="image/webp">
   <link rel="stylesheet" href="assets/css/site.css">
+  <script>document.documentElement.classList.add("js");</script>
 </head>
 <body>
-  <div class="ambient" aria-hidden="true"></div>
-  <main class="site-shell">
-    <div class="site-toolbar">
-      <div class="language-control">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18M5 7h14M5 17h14"/></svg>
-        <label for="language-select" data-i18n="language.label">Language</label>
-        <select id="language-select" name="language" data-i18n-aria-label="language.label" aria-label="Language">__LANGUAGE_OPTIONS__</select>
-      </div>
+  <div class="intro" aria-hidden="true">
+    <svg class="intro-mark" viewBox="0 0 64 64">
+      <rect class="blade blade-spine" x="10" y="8" width="9" height="48" rx="4.5"/>
+      <rect class="blade blade-1" x="10" y="8" width="44" height="10" rx="5"/>
+      <rect class="blade blade-2" x="10" y="27" width="34" height="10" rx="5"/>
+      <rect class="blade blade-3" x="10" y="46" width="44" height="10" rx="5"/>
+    </svg>
+    <span class="intro-word">ECU</span>
+  </div>
+
+  <div class="backdrop" aria-hidden="true">
+    <div class="aurora aurora-gold"></div>
+    <div class="aurora aurora-blue"></div>
+    <div class="aurora aurora-red"></div>
+    <div class="grid-lines"></div>
+    <div class="spotlight"></div>
+    <div class="grain"></div>
+  </div>
+  <canvas id="sparks" class="sparks" aria-hidden="true"></canvas>
+
+  <header class="topbar">
+    <a class="brand" href="#top" aria-label="__NAME__">
+      <svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true">
+        <rect class="blade blade-spine" x="10" y="8" width="9" height="48" rx="4.5"/>
+        <rect class="blade blade-1" x="10" y="8" width="44" height="10" rx="5"/>
+        <rect class="blade blade-2" x="10" y="27" width="34" height="10" rx="5"/>
+        <rect class="blade blade-3" x="10" y="46" width="44" height="10" rx="5"/>
+      </svg>
+      <span class="brand-word">ECU</span>
+    </a>
+    <div class="language-control">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18M5 7h14M5 17h14"/></svg>
+      <label for="language-select" data-i18n="language.label">Language</label>
+      <select id="language-select" name="language" data-i18n-aria-label="language.label" aria-label="Language">__LANGUAGE_OPTIONS__</select>
+      <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg>
     </div>
+  </header>
+
+  <main id="top" class="site-shell">
     <header class="hero">
-      <div class="avatar">__PROFILE__</div>
-      <p class="eyebrow" data-i18n="site.eyebrow">Music &amp; connections</p>
-      <h1>__NAME__</h1>
-      <p class="hero-subtitle" data-i18n="content.tagline">__TAGLINE__</p>
+      <div class="avatar" data-reveal>
+        <span class="avatar-ring" aria-hidden="true"></span>
+        <picture>
+          <source srcset="images/profile-320.webp 1x, images/profile-640.webp 2x" type="image/webp">
+          <img class="profile-photo" src="images/profile-320.jpg" srcset="images/profile-320.jpg 1x, images/profile-640.jpg 2x" alt="__NAME__" width="148" height="148" fetchpriority="high">
+        </picture>
+        <span class="avatar-live" aria-hidden="true"><i></i><i></i><i></i></span>
+      </div>
+      <p class="eyebrow" data-reveal data-i18n="site.eyebrow">Music &amp; connections</p>
+      <h1 class="hero-title" data-split>__NAME__</h1>
+      <p class="hero-subtitle" data-reveal data-i18n="content.tagline">__TAGLINE__</p>
+      <div class="hero-actions" data-reveal>
+        <button id="hero-listen" class="cta" type="button" data-magnetic>
+          <span class="cta-glow" aria-hidden="true"></span>
+          <span class="cta-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            <span class="cta-eq"><i></i><i></i><i></i></span>
+          </span>
+          <span data-i18n="hero.listen">Listen now</span>
+        </button>
+      </div>
+      <a class="scroll-cue" href="#links" aria-hidden="true" tabindex="-1"><span></span></a>
     </header>
-    <div class="sections-grid">__SECTIONS__</div>
-    <footer class="site-footer" data-i18n="site.footer">__NAME__ &middot; Music &amp; links</footer>
+
+    <div id="links" class="sections-grid">__SECTIONS__
+      <section class="link-section glass discography" data-reveal aria-labelledby="discography-heading">
+        <h2 id="discography-heading" class="section-heading" data-i18n="music.heading">Discography</h2>
+        <div id="discography" class="track-grid"></div>
+      </section>
+    </div>
+
+    <footer class="site-footer-wrap" data-reveal>
+      <span class="flag-stripe" aria-hidden="true"><i></i><i></i><i></i></span>
+      <p class="site-footer" data-i18n="site.footer">__NAME__ &middot; Music &amp; links</p>
+    </footer>
   </main>
+
   <p id="language-status" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></p>
+
   <div id="player-dock" class="player-dock">
     <section id="playlist-panel" class="playlist-panel glass" aria-labelledby="playlist-heading" hidden>
       <div class="playlist-heading">
@@ -80,9 +150,11 @@
       <audio id="music-audio" preload="metadata"></audio>
     </section>
   </div>
+
   <script id="track-data" type="application/json">__TRACK_DATA__</script>
   <script id="i18n-data" type="application/json">__I18N_DATA__</script>
   <script src="assets/js/i18n.js" defer></script>
   <script src="assets/js/player.js" defer></script>
+  <script src="assets/js/motion.js" defer></script>
 </body>
 </html>

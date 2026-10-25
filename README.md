@@ -1,6 +1,10 @@
 ﻿# ECU Music & Links
 
-A static artist page with a playlist, audio player, and social links.
+A static artist page with a playlist, audio player, discography, and social links,
+in the ECUSYSTEM style: dark glass, gold/blue/red accents, and Apple-style motion
+(intro with the ECU blades, staged reveals, 3D release card, magnetic button,
+cursor light, conic borders, and spark bursts on links). Every animation turns
+off for visitors who ask for reduced motion.
 
 ## Edit and preview
 
@@ -15,18 +19,23 @@ The preview server supports HTTP byte ranges so songs can seek correctly.
 - `site.json`: profile and playlist configuration.
 - `templates/index.html`: page markup and build placeholders.
 - `assets/css/site.css`: active page styles.
-- `assets/js/player.js`: playback, timeline, playlist, and visualizer.
+- `assets/js/player.js`: playback, timeline, playlist, discography cards, and visualizer.
+- `assets/js/motion.js`: intro, reveals, parallax, tilt, magnetic button, and sparks.
 - `assets/js/i18n.js`: language selection, browser detection, saved preference,
   text bindings, and localized plural counts.
 - `locales/`: AI-translated English, Spanish, Portuguese (Brazil), French,
   German, Italian, and Arabic catalogs.
-- `assets/fonts/`: bundled Sora fonts; license retained in the stylesheet.
+- `assets/fonts/`: bundled Sora and Manrope fonts; licenses in `OFL.txt`.
 - `audio/`: original MP3 files.
-- `images/`: profile photo, covers, and brand icons (Simple Icons, CC0).
+- `images/`: profile photo (the page loads the light `profile-320/640` copies;
+  `profile.jpg` is the 10 MB original), covers, favicon, share card, and brand
+  icons (Simple Icons, CC0). The build inlines the icons so they can glow in each
+  platform's color (set in `BRAND` inside `build.py`).
 - `build.py`: standard-library static page generator.
 - `serve.py`: local preview server with audio range support.
 - `index.html`: generated deployment entry point.
-- `archive/style.css`: previous unused stylesheet, kept for reference.
+- `archive/style.css`: older unused stylesheet, kept for reference.
+- `archive/v1/`: the previous (purple) version of the page, kept as a backup.
 
 ## Publish
 

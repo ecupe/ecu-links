@@ -70,6 +70,9 @@ class LocalizationBrowserTests(unittest.TestCase):
         self.page.on("pageerror", lambda error: self.errors.append(str(error)))
         self.page.goto(self.url)
         self.page.wait_for_function("window.SiteI18n && document.querySelector('#playlist-items').children.length === 4")
+        # The player dock slides in after the intro; pointer checks need it settled.
+        self.page.wait_for_function("document.documentElement.classList.contains('is-ready')"
+                                    " && document.getElementById('player-dock').getAnimations().length === 0")
 
     def tearDown(self):
         self.context.close()
@@ -188,6 +191,38 @@ class LocalizationBrowserTests(unittest.TestCase):
                 page.select_option("#language-select", "es")
                 self.assertEqual(page.locator("#queue-count").text_content(), "1 canción")
             context.close()
+
+    def test_discography_and_listen_button_drive_the_player(self):
+        self.page.evaluate("document.querySelector('#music-audio').muted = true")
+        cards = self.page.locator("#discography .track-card")
+        self.assertEqual(cards.count(), 4)
+        cards.nth(2).scroll_into_view_if_needed()
+        cards.nth(2).click()
+        self.page.wait_for_function("!document.querySelector('#music-audio').paused")
+        self.assertEqual(self.page.locator("#track-title").text_content(), cards.nth(2).locator(".track-name").text_content())
+        self.assertIn("is-current", cards.nth(2).get_attribute("class"))
+        self.assertIn("is-playing", self.page.locator("html").get_attribute("class"))
+        cards.nth(2).click()
+        self.page.wait_for_function("document.querySelector('#music-audio').paused")
+        self.page.evaluate("window.scrollTo(0, 0)")
+        self.page.click("#hero-listen")
+        self.page.wait_for_function("!document.querySelector('#music-audio').paused")
+        self.change("de")
+        self.assertIn("Millones", cards.nth(2).get_attribute("aria-label"))
+        self.assertEqual(self.page.locator("#hero-listen").text_content().strip(), "Jetzt anhören")
+        self.page.click("#play-button")
+
+    def test_sections_reveal_on_scroll_and_without_motion(self):
+        self.page.evaluate("document.querySelector('.discography').scrollIntoView()")
+        self.page.wait_for_function("[...document.querySelectorAll('[data-reveal]')].every(e => e.classList.contains('is-in'))")
+        context = self.browser.new_context(locale="en-US", reduced_motion="reduce")
+        page = context.new_page()
+        page.goto(self.url)
+        page.wait_for_function("document.documentElement.classList.contains('is-ready')")
+        hidden = page.evaluate("[...document.querySelectorAll('[data-reveal]')].filter(e => getComputedStyle(e).opacity !== '1').length")
+        self.assertEqual(hidden, 0)
+        self.assertEqual(page.locator("h1").text_content(), self.page.locator("h1").text_content())
+        context.close()
 
     def test_mobile_layout_all_languages_and_local_file(self):
         for width in (300, 320, 375, 768):
