@@ -128,7 +128,7 @@ a{color:inherit;text-decoration:none}
 .site-shell{width:min(1120px,100%);margin:0 auto;padding:120px clamp(16px,4vw,32px) 230px}
 
 /* ───────── Hero ───────── */
-.hero{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;min-height:min(calc(100vh - 290px),720px);min-height:min(calc(100svh - 290px),720px);justify-content:center;padding-bottom:70px;transform-origin:50% 0}
+.hero{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;min-height:min(calc(100vh - 150px),820px);min-height:min(calc(100svh - 150px),820px);justify-content:center;padding-bottom:70px;transform-origin:50% 0}
 .avatar{position:relative;width:156px;height:156px;margin-bottom:30px;display:grid;place-items:center}
 .avatar picture{display:contents}
 .avatar-ring{
@@ -341,8 +341,12 @@ html.is-playing .cta-eq{transform:scale(1)}
 .js .hero-title .char{transform:translateY(105%) rotate(6deg);opacity:0;transition:transform 1s var(--ease),opacity .8s var(--ease);transition-delay:var(--d,0s)}
 .js .hero-title.is-in .char{transform:none;opacity:1}
 .js .hero-title .word{overflow:hidden;padding-bottom:.08em;margin-bottom:-.08em}
+/* The dock waits below the fold while the hero is on screen, then glides in on scroll,
+   on play, or when keyboard focus reaches it. */
 .js .player-dock{transform:translate(-50%,140%);opacity:0}
-.js.is-ready .player-dock{transform:translate(-50%,0);opacity:1}
+.js.is-ready.dock-on .player-dock,
+.js.is-ready.is-playing .player-dock,
+.js.is-ready .player-dock:focus-within{transform:translate(-50%,0);opacity:1}
 
 /* ───────── Player ───────── */
 .player-dock{
@@ -492,4 +496,5 @@ html.is-playing .cta-eq{transform:scale(1)}
   .avatar-ring,.cta-glow{animation:none}
   .grain,.aurora{animation:none}
   .js [data-reveal],.js .hero-title .char{opacity:1;transform:none;filter:none}
+  .js .player-dock{transform:translate(-50%,0);opacity:1}
 }

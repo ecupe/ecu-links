@@ -103,6 +103,7 @@
     scrollFrame = 0;
     const y = window.scrollY;
     if (topbar) topbar.classList.toggle("is-scrolled", y > 12);
+    root.classList.toggle("dock-on", y > 60);
     if (pending.length) window.setTimeout(revealVisible, 400);
     if (hero && !reduced) {
       const progress = Math.min(1, Math.max(0, y / (hero.offsetHeight * 0.9)));

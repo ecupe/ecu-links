@@ -70,8 +70,10 @@ class LocalizationBrowserTests(unittest.TestCase):
         self.page.on("pageerror", lambda error: self.errors.append(str(error)))
         self.page.goto(self.url)
         self.page.wait_for_function("window.SiteI18n && document.querySelector('#playlist-items').children.length === 4")
-        # The player dock slides in after the intro; pointer checks need it settled.
-        self.page.wait_for_function("document.documentElement.classList.contains('is-ready')"
+        # The player dock glides in once the visitor scrolls past the hero; pointer checks need it settled.
+        self.page.wait_for_function("document.documentElement.classList.contains('is-ready')")
+        self.page.evaluate("window.scrollTo(0, 400)")
+        self.page.wait_for_function("document.documentElement.classList.contains('dock-on')"
                                     " && document.getElementById('player-dock').getAnimations().length === 0")
 
     def tearDown(self):
