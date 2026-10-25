@@ -215,7 +215,7 @@ class LocalizationBrowserTests(unittest.TestCase):
         self.page.click("#play-button")
 
     def test_sections_reveal_on_scroll_and_without_motion(self):
-        self.page.evaluate("document.querySelector('.discography').scrollIntoView()")
+        self.page.evaluate("document.querySelector('.site-footer-wrap').scrollIntoView()")
         self.page.wait_for_function("[...document.querySelectorAll('[data-reveal]')].every(e => e.classList.contains('is-in'))")
         context = self.browser.new_context(locale="en-US", reduced_motion="reduce")
         page = context.new_page()
@@ -267,7 +267,28 @@ class LocalizationBrowserTests(unittest.TestCase):
         self.page.keyboard.press("Escape")
         self.assertFalse(self.page.locator("#viz-dialog").evaluate("d => d.open"))
         more = self.page.locator(".more .link-button")
-        self.assertEqual([more.nth(i).text_content().split("Opens")[0].strip() for i in range(more.count())], ["GitHub", "Steam"])
+        self.assertEqual([more.nth(i).text_content().split("Opens")[0].strip() for i in range(more.count())], ["GitHub", "Steam", "Discord · ECULAND"])
+
+    def test_contact_form_reports_success_and_failure(self):
+        form = self.page.locator("#contact-form")
+        if not form.count():
+            self.skipTest("contact form is off in site.json")
+        self.assertTrue(form.get_attribute("action").startswith("https://formspree.io/f/"))
+        # Formspree is faked here so tests never send real email.
+        for status, key in ((200, "contact.sent"), (500, "contact.error")):
+            with self.subTest(status=status):
+                def reply(route, status=status):
+                    route.fulfill(status=status, content_type="application/json", body="{}")
+                self.page.route("https://formspree.io/**", lambda route: reply(route))
+                form.scroll_into_view_if_needed()
+                self.page.fill("#contact-form [name=name]", "Test")
+                self.page.fill("#contact-form [name=email]", "test@example.com")
+                self.page.fill("#contact-form [name=message]", "Hola")
+                self.page.click("#contact-form button[type=submit]")
+                expected = self.page.evaluate(f"SiteI18n.t('{key}')")
+                self.page.wait_for_function(f"document.querySelector('#contact-status').textContent === {expected!r}")
+                self.page.unroute("https://formspree.io/**")
+        self.assertEqual(self.page.locator("#contact-form [name=message]").input_value(), "Hola")
 
     def test_countdown_flips_to_out_now(self):
         html = (ROOT / "index.html").read_text(encoding="utf-8")
