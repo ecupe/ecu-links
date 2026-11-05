@@ -1,7 +1,7 @@
 // Offline shell for the installable app. Pages are network-first (fresh when online),
 // static assets are served from cache and refreshed in the background, and songs
 // always stream from the network (they use range requests and are large).
-const CACHE = "ecu-links-v5";
+const CACHE = "ecu-links-v6";
 const SHELL = [
   "./",
   "index.html",
@@ -10,6 +10,7 @@ const SHELL = [
   "assets/js/player.js",
   "assets/js/motion.js",
   "assets/js/features.js",
+  "assets/js/nav.js",
   "assets/fonts/sora-0.woff2",
   "assets/fonts/sora-1.woff2",
   "images/favicon.svg",

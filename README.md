@@ -28,6 +28,11 @@ Run `py build.py` after any change below, then publish.
 - **Contact form**: create a free form at formspree.io and put its ID (the part
   after `/f/`) in `contact.formspree`. Messages arrive in your email; the page
   never shows your address.
+- **Projects**: each entry in `projects` (`name`, `url`, `key`, `tags`) becomes a card
+  in the Projects section. Add its description to every `locales/*.json` as
+  `project.<key>`. The section and its nav link disappear when the list is empty.
+- **About**: the bio lives in the locale files (`about.lead`, `about.body`,
+  `about.role.0`–`2`), so edit it in every language you care about.
 - **More from ECU**: the Discord tile appears once its URL is filled in (use an
   invite that never expires).
 

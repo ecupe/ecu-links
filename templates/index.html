@@ -61,7 +61,13 @@
       </svg>
       <span class="brand-word">ECU</span>
     </a>
+    <nav id="main-nav" class="main-nav" data-i18n-aria-label="nav.label" aria-label="Main">
+      <span class="nav-indicator" aria-hidden="true"></span>__NAV__
+    </nav>
     <div class="topbar-actions">
+    <button id="nav-toggle" class="icon-button nav-toggle" type="button" aria-controls="main-nav" aria-expanded="false" data-i18n-aria-label="nav.menu" aria-label="Open menu">
+      <span class="burger" aria-hidden="true"><i></i><i></i></span>
+    </button>
     <button id="qr-open" class="icon-button" type="button" data-i18n-aria-label="qr.open" aria-label="Show QR code" data-i18n-title="qr.open" title="Show QR code">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/></svg>
     </button>
@@ -106,10 +112,6 @@
     </header>
 
     <div id="links" class="sections-grid">__SECTIONS__
-      <section class="link-section glass discography" data-reveal aria-labelledby="discography-heading">
-        <h2 id="discography-heading" class="section-heading" data-i18n="music.heading">Discography</h2>
-        <div id="discography" class="track-grid"></div>
-      </section>__CONTACT__
     </div>
 
     <footer class="site-footer-wrap" data-reveal>
@@ -222,6 +224,7 @@
   <script src="assets/js/player.js" defer></script>
   <script src="assets/js/motion.js" defer></script>
   <script src="assets/js/features.js" defer></script>
+  <script src="assets/js/nav.js" defer></script>
   __ANALYTICS__
 </body>
 </html>

@@ -1,7 +1,7 @@
 {
   "name": "Mateo Amendano",
-  "tagline": "My music, socials, and contact links.",
-  "site_url": "https://ecupe.github.io/ecu-links/",
+  "tagline": "Music, code, and everything I make.",
+  "site_url": "https://mateoamendano.com/",
   "upcoming": {
     "enabled": false,
     "title": "Next Single",
@@ -16,6 +16,27 @@
   "contact": {
     "formspree": "xyeekkyn"
   },
+  "projects": [
+    {
+      "name": "ECUSYSTEM",
+      "url": "https://ecusystem.dev",
+      "key": "ecusystem",
+      "tags": [
+        "Web",
+        "Design"
+      ]
+    },
+    {
+      "name": "ECU Links",
+      "url": "https://github.com/ecupe/ecu-links",
+      "key": "ecuLinks",
+      "tags": [
+        "HTML",
+        "CSS",
+        "JS"
+      ]
+    }
+  ],
   "groups": [
     [
       "Latest Release",

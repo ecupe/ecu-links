@@ -118,7 +118,7 @@ def contact_section():
            f'autocomplete="{"email" if name == "email" else "name"}">')
         + '</label>')
     return (
-        '\n      <section class="link-section glass contact" data-reveal aria-labelledby="contact-heading">'
+        '\n      <section id="contact" class="link-section glass contact" data-reveal aria-labelledby="contact-heading">'
         '<h2 id="contact-heading" class="section-heading" data-i18n="contact.heading">Contact &amp; booking</h2>'
         '<p class="contact-intro" data-i18n="contact.intro">Collabs, shows, or just to say hi. I read everything.</p>'
         f'<form id="contact-form" class="contact-form" action="https://formspree.io/f/{escape(form_id)}" method="POST">'
@@ -129,6 +129,70 @@ def contact_section():
         '<span data-i18n="contact.send">Send message</span></button>'
         '<p id="contact-status" class="contact-status" role="status" aria-live="polite"></p></div></form></section>'
     )
+
+
+def discography_section():
+    return ('\n      <section class="link-section glass discography" data-reveal aria-labelledby="discography-heading">'
+            '<h2 id="discography-heading" class="section-heading" data-i18n="music.heading">Discography</h2>'
+            '<div id="discography" class="track-grid"></div></section>')
+
+
+def about_section(locale):
+    m = locale["messages"]
+    roles = "".join(f'<li data-i18n="about.role.{i}">{escape(m[f"about.role.{i}"])}</li>' for i in range(3))
+    return (
+        '\n      <section id="about" class="link-section glass about" data-reveal aria-labelledby="about-heading">'
+        f'<h2 id="about-heading" class="section-heading" data-i18n="about.heading">{escape(m["about.heading"])}</h2>'
+        '<div class="about-grid"><div class="about-photo"><picture>'
+        '<source srcset="images/profile-320.webp 1x, images/profile-640.webp 2x" type="image/webp">'
+        f'<img src="images/profile-320.jpg" alt="" width="220" height="220" loading="lazy"></picture>'
+        '<span class="about-badge" aria-hidden="true">ECU</span></div>'
+        f'<div class="about-copy"><p class="about-lead" data-i18n="about.lead">{escape(m["about.lead"].replace("{name}", SITE["name"]))}</p>'
+        f'<p class="about-body" data-i18n="about.body">{escape(m["about.body"])}</p>'
+        f'<ul class="about-roles">{roles}</ul></div></div></section>'
+    )
+
+
+def projects_section(locale):
+    projects = SITE.get("projects") or []
+    if not projects:
+        return ""
+    m = locale["messages"]
+    cards = ""
+    for p in projects:
+        key = f'project.{p["key"]}'
+        if key not in m:
+            sys.exit(f"Add {key} to every locales/*.json for the project '{p['name']}'")
+        tags = "".join(f"<li>{escape(t)}</li>" for t in p.get("tags", []))
+        cards += (
+            f'<a class="project-card" href="{escape(p["url"])}" target="_blank" rel="noopener noreferrer" data-magic '
+            f'data-goatcounter-click="project-{slugify(p["name"])}">'
+            f'<span class="project-top"><span class="project-name">{escape(p["name"])}</span>{ARROW}</span>'
+            f'<span class="project-desc" data-i18n="{key}">{escape(m[key])}</span>'
+            f'<ul class="project-tags">{tags}</ul>'
+            f'<span class="shine" aria-hidden="true"></span>{NEW_TAB}</a>'
+        )
+    return (
+        '\n      <section id="projects" class="link-section glass projects" data-reveal aria-labelledby="projects-heading">'
+        f'<h2 id="projects-heading" class="section-heading" data-i18n="projects.heading">{escape(m["projects.heading"])}</h2>'
+        f'<p class="section-intro" data-i18n="projects.intro">{escape(m["projects.intro"])}</p>'
+        f'<div class="project-grid">{cards}</div></section>'
+    )
+
+
+def nav_links(locale, has_projects, has_contact):
+    m = locale["messages"]
+    items = [("top", "nav.home"), ("music", "nav.music"), ("about", "nav.about")]
+    if has_projects:
+        items.append(("projects", "nav.projects"))
+    if has_contact:
+        items.append(("contact", "nav.contact"))
+    return "".join(f'<a class="nav-link" href="#{target}" data-i18n="{key}">{escape(m[key])}</a>' for target, key in items)
+
+
+def with_id(html, section_id):
+    """Give the first section in a block an anchor id for the top navigation."""
+    return html.replace("<section ", f'<section id="{section_id}" ', 1)
 
 
 def analytics_tag():
@@ -210,17 +274,23 @@ def main():
     locales = load_locales()
     base = SITE.get("site_url", "").rstrip("/") + "/"
     order = [c for c in LANGUAGE_ORDER if c in locales] + sorted(set(locales) - set(LANGUAGE_ORDER))
-    sections = upcoming_card() + "".join(
-        release_card(i, title, links) if i == 0 else link_group(i, title, links)
-        for i, (title, links) in enumerate(SITE["groups"])
-    )
+    english = locales[DEFAULT_LANGUAGE]
+    groups = {i: (release_card(i, title, links) if i == 0 else link_group(i, title, links))
+              for i, (title, links) in enumerate(SITE["groups"])}
+    # Page order: music (release, streaming, discography), about + socials, projects + more, contact.
+    music = with_id(upcoming_card() + groups.get(0, "") + groups.get(1, ""), "music") + discography_section()
+    projects = projects_section(english)
+    contact = contact_section()
+    extra = "".join(v for i, v in groups.items() if i > 3)
+    sections = (music + about_section(english) + groups.get(2, "") + projects + groups.get(3, "")
+                + extra + contact)
     tracks = [{**t, "artist": t.get("artist", SITE["name"]), "slug": slugify(t["title"])} for t in SITE["tracks"]]
     for track in tracks:
         track["share"] = base + "s/" + track["slug"] + "/"
     page = (ROOT / "templates" / "index.html").read_text(encoding="utf-8")
     replacements = {
         "__SECTIONS__": sections,
-        "__CONTACT__": contact_section(),
+        "__NAV__": nav_links(english, bool(projects), bool(contact)),
         "__ANALYTICS__": analytics_tag(),
         "__LANGUAGE_OPTIONS__": "".join(
             f'<option value="{c}" lang="{c}">{escape(locales[c]["name"])}</option>' for c in order),
