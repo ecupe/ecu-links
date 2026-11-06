@@ -44,16 +44,57 @@ a{color:inherit;text-decoration:none}
 :focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:12px}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
 
-/* ───────── Intro ───────── */
+/* ───────── Intro gate (click the logo to enter) ───────── */
 .intro{display:none}
-.js .intro{
+.js.gate-open .intro,.js .intro.is-leaving{
   position:fixed;inset:0;z-index:100;display:grid;place-items:center;align-content:center;gap:18px;
-  background:var(--bg);pointer-events:none;
-  animation:intro-out .9s var(--ease) 1.55s forwards;
+  background:radial-gradient(90% 70% at 50% 45%,#0d1020 0%,var(--bg) 70%);color:var(--ink);
+  --hole:0%;
+  -webkit-mask:radial-gradient(circle at 50% 46%,transparent var(--hole),#000 calc(var(--hole) + 2%));
+  mask:radial-gradient(circle at 50% 46%,transparent var(--hole),#000 calc(var(--hole) + 2%));
 }
 .js.skip-intro .intro{display:none}
-.intro-mark{width:76px;height:76px;filter:drop-shadow(0 0 28px rgba(245,200,75,.25))}
+.js.gate-open{overflow:hidden}
+.js.gate-open .site-shell{transform:scale(.94);filter:blur(8px);opacity:.4}
+.js .site-shell{transition:transform 1.2s var(--ease),filter 1.2s var(--ease),opacity 1s var(--ease)}
+@property --hole{syntax:"<percentage>";inherits:false;initial-value:0%}
+.intro.is-leaving{pointer-events:none;animation:gate-open 1.1s cubic-bezier(.7,0,.2,1) .28s forwards}
+@keyframes gate-open{0%{--hole:0%;opacity:1}85%{opacity:1}100%{--hole:160%;opacity:0;visibility:hidden}}
+
+.intro-enter{
+  position:relative;display:grid;place-items:center;width:150px;height:150px;border:0;border-radius:50%;
+  background:transparent;cursor:pointer;perspective:500px;-webkit-tap-highlight-color:transparent;
+}
+.intro-enter:focus-visible{outline-offset:6px;border-radius:50%}
+.intro-mark{
+  width:92px;height:92px;overflow:visible;filter:drop-shadow(0 0 28px rgba(245,200,75,.3));
+  transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) scale(var(--s,1));
+  transition:transform .5s var(--ease),filter .4s var(--ease);
+}
+.intro-enter:hover .intro-mark{filter:drop-shadow(0 0 40px rgba(245,200,75,.55))}
+.intro-enter:active .intro-mark{--s:.9;transition-duration:.12s}
+/* Blades drift apart as the cursor approaches (--spread 0..1, set from motion.js). */
+.intro .blade{transition:translate .35s var(--ease),opacity .5s var(--ease),rotate .9s var(--ease)}
+.intro .blade-spine{translate:calc(var(--spread,0) * -5px) 0}
+.intro .blade-1{translate:calc(var(--spread,0) * 4px) calc(var(--spread,0) * -7px)}
+.intro .blade-2{translate:calc(var(--spread,0) * 9px) 0}
+.intro .blade-3{translate:calc(var(--spread,0) * 4px) calc(var(--spread,0) * 7px)}
+.intro-pulse{position:absolute;inset:18px;border-radius:50%;border:1px solid rgba(245,200,75,.45);animation:gate-pulse 2.4s var(--ease) 1.1s infinite;opacity:0}
+@keyframes gate-pulse{0%{transform:scale(.7);opacity:0}25%{opacity:.9}100%{transform:scale(1.55);opacity:0}}
 .intro-word{font-weight:700;font-size:15px;letter-spacing:.6em;padding-left:.6em;color:var(--ink-2);opacity:0;animation:fade-up .8s var(--ease) .75s forwards}
+.intro-hint{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3,var(--ink-2));opacity:0;animation:fade-up .8s var(--ease) 1.1s forwards,gate-breathe 2.4s ease-in-out 1.9s infinite}
+@keyframes gate-breathe{50%{opacity:.45}}
+.intro-skip{
+  position:absolute;right:max(20px,env(safe-area-inset-right));bottom:max(20px,env(safe-area-inset-bottom));
+  padding:8px 14px;border:1px solid var(--line);border-radius:999px;background:transparent;color:var(--ink-2);
+  font-size:13px;cursor:pointer;opacity:0;animation:fade-up .6s var(--ease) 1.4s forwards;
+}
+.intro-skip:hover{color:var(--ink);border-color:rgba(245,200,75,.5)}
+.intro-ring{position:absolute;left:50%;top:46%;width:160px;height:160px;margin:-80px 0 0 -80px;border-radius:50%;pointer-events:none;opacity:0}
+.intro-ring-gold{border:2px solid var(--gold);box-shadow:0 0 40px rgba(245,200,75,.5),inset 0 0 30px rgba(245,200,75,.3)}
+.intro-ring-blue{border:1px solid var(--blue);box-shadow:0 0 30px rgba(79,134,247,.4)}
+
+/* Blades build in on load. */
 .blade{transform-box:fill-box;transform-origin:left center}
 .blade-spine{fill:var(--gold);transform-origin:center top}
 .blade-1{fill:var(--gold)}
@@ -66,10 +107,20 @@ a{color:inherit;text-decoration:none}
 .intro .blade-3{animation-delay:.42s}
 @keyframes blade-in{to{transform:scaleX(1)}}
 @keyframes spine-in{to{transform:scaleY(1)}}
-@keyframes intro-out{
-  0%{opacity:1;clip-path:circle(150% at 50% 50%)}
-  100%{opacity:0;clip-path:circle(0% at 50% 50%);visibility:hidden}
-}
+
+/* The click: logo punches, shockwaves roll out, blades shatter outward. */
+.intro.is-leaving .intro-mark{animation:gate-punch .5s var(--ease) forwards}
+@keyframes gate-punch{0%{transform:scale(1)}25%{transform:scale(.82)}100%{transform:scale(1.25)}}
+.intro.is-leaving .intro-ring-gold{animation:gate-wave 1.1s cubic-bezier(.2,.7,.2,1) forwards}
+.intro.is-leaving .intro-ring-blue{animation:gate-wave 1.3s cubic-bezier(.2,.7,.2,1) .1s forwards}
+@keyframes gate-wave{0%{transform:scale(.4);opacity:1}100%{transform:scale(14);opacity:0;border-width:.5px}}
+.intro.is-leaving .blade{opacity:0;transition-duration:.6s,.6s,.7s;transition-delay:.12s}
+.intro.is-leaving .blade-spine{translate:-60px 10px;rotate:-25deg}
+.intro.is-leaving .blade-1{translate:50px -70px;rotate:-35deg}
+.intro.is-leaving .blade-2{translate:90px 6px;rotate:20deg}
+.intro.is-leaving .blade-3{translate:40px 80px;rotate:40deg}
+.intro.is-leaving .intro-word,.intro.is-leaving .intro-hint,.intro.is-leaving .intro-skip,.intro.is-leaving .intro-pulse{animation:none;opacity:0;transition:opacity .25s}
+.intro.is-skipping{animation-delay:0s;animation-duration:.45s}
 @keyframes fade-up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 
 /* ───────── Backdrop ───────── */
@@ -694,6 +745,8 @@ html.theme-shift,html.theme-shift *{transition:background-color .6s var(--ease),
   html{scroll-behavior:auto}
   *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
   .js .intro{display:none}
+  .js.gate-open{overflow:auto}
+  .js.gate-open .site-shell{transform:none;filter:none;opacity:1}
   .avatar-ring,.avatar-glow,.cta-glow{animation:none}
   .grain,.aurora{animation:none}
   .js [data-reveal],.js .hero-title .char{opacity:1;transform:none;filter:none}

@@ -54,6 +54,15 @@ class LocalizationBrowserTests(unittest.TestCase):
         cls.browser = cls.playwright.chromium.launch(
             executable_path=executable, headless=True
         )
+        # Most checks are about the page itself, so every context starts past the
+        # click-to-enter intro (as a returning visitor would). test_intro_gate uses raw_context.
+        cls.raw_context = cls.browser.new_context
+
+        def past_intro(**options):
+            context = cls.raw_context(**options)
+            context.add_init_script("try { sessionStorage.setItem('ecu-intro', '1') } catch (e) {}")
+            return context
+        cls.browser.new_context = past_intro
 
     @classmethod
     def tearDownClass(cls):
@@ -213,6 +222,34 @@ class LocalizationBrowserTests(unittest.TestCase):
         self.assertIn("Millones", cards.nth(2).get_attribute("aria-label"))
         self.assertEqual(self.page.locator("#hero-listen").text_content().strip(), "Jetzt anhören")
         self.page.click("#play-button")
+
+    def test_intro_gate(self):
+        context = self.raw_context(locale="en-US", viewport={"width": 1280, "height": 900})
+        page = context.new_page()
+        page.goto(self.url)
+        page.wait_for_selector("#intro-enter", state="visible")
+        self.assertTrue(page.evaluate("document.documentElement.classList.contains('gate-open')"))
+        self.assertTrue(page.evaluate("document.querySelector('.topbar').inert"))
+        self.assertFalse(page.evaluate("document.documentElement.classList.contains('is-ready')"))
+        page.click("#intro-enter")
+        page.wait_for_function("document.documentElement.classList.contains('is-ready')"
+                               " && document.getElementById('intro').hidden")
+        self.assertFalse(page.evaluate("document.querySelector('.topbar').inert"))
+        page.reload()  # once per visit: a reload goes straight in
+        page.wait_for_function("document.documentElement.classList.contains('is-ready')")
+        self.assertTrue(page.evaluate("document.documentElement.classList.contains('skip-intro')"))
+        context.close()
+
+        context = self.raw_context(locale="en-US")
+        page = context.new_page()
+        page.goto(self.url + "?song=millones-mas")  # shared song links skip the gate
+        page.wait_for_function("document.documentElement.classList.contains('is-ready')")
+        self.assertFalse(page.is_visible("#intro"))
+        page.goto(self.url.replace("127.0.0.1", "localhost"))  # fresh origin storage, use Escape
+        page.wait_for_selector("#intro-enter", state="visible")
+        page.keyboard.press("Escape")
+        page.wait_for_function("document.documentElement.classList.contains('is-ready')")
+        context.close()
 
     def test_sections_reveal_on_scroll_and_without_motion(self):
         self.page.evaluate("document.querySelector('.site-footer-wrap').scrollIntoView()")

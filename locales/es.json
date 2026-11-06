@@ -93,6 +93,10 @@
     "projects.intro": "Más allá de la música: cosas que diseño y construyo como ECU.",
     "project.ecusystem": "El hogar de mis proyectos ECU en la web.",
     "project.ecuLinks": "Este sitio: reproductor, discografía y enlaces en 7 idiomas, hecho con HTML, CSS y JavaScript puro.",
-    "projects.open": "Ver proyecto"
+    "projects.open": "Ver proyecto",
+    "gate.click": "Haz clic para entrar",
+    "gate.tap": "Toca para entrar",
+    "gate.skip": "Saltar intro",
+    "gate.label": "Entrar al sitio"
   }
 }

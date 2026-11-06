@@ -2,7 +2,10 @@
 
 A static artist page with a playlist, audio player, discography, and social links,
 in the ECUSYSTEM style: dark glass, gold/blue/red accents, and Apple-style motion
-(intro with the ECU blades, staged reveals, 3D release card, magnetic button,
+(a click-to-enter intro: the ECU logo leans toward the cursor, and a click plays a
+synthesized bass hit, sends out shockwaves and shatters the blades into sparks as the
+page opens; it shows once per visit and is skipped for song links and reduced motion;
+staged reveals, 3D release card, magnetic button,
 cursor light, conic borders, and spark bursts on links). Every animation turns
 off for visitors who ask for reduced motion.
 

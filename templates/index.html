@@ -29,17 +29,33 @@
     if ((navigator.deviceMemory && navigator.deviceMemory <= 2) || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2) || conn.saveData) {
       document.documentElement.classList.add("lite");
     }
+    // The click-to-enter intro shows once per visit. Skip it before first paint for returning
+    // visitors, reduced motion, and song links (someone sent a song; go straight to it).
+    var seenIntro = false;
+    try { seenIntro = sessionStorage.getItem("ecu-intro") === "1"; } catch (_) {}
+    if (seenIntro || /[?&]song=/.test(location.search) || (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches)) {
+      document.documentElement.classList.add("skip-intro");
+    } else {
+      document.documentElement.classList.add("gate-open");
+    }
   </script>
 </head>
 <body>
-  <div class="intro" aria-hidden="true">
-    <svg class="intro-mark" viewBox="0 0 64 64">
-      <rect class="blade blade-spine" x="10" y="8" width="9" height="48" rx="4.5"/>
-      <rect class="blade blade-1" x="10" y="8" width="44" height="10" rx="5"/>
-      <rect class="blade blade-2" x="10" y="27" width="34" height="10" rx="5"/>
-      <rect class="blade blade-3" x="10" y="46" width="44" height="10" rx="5"/>
-    </svg>
-    <span class="intro-word">ECU</span>
+  <div class="intro" id="intro">
+    <span class="intro-ring intro-ring-gold" aria-hidden="true"></span>
+    <span class="intro-ring intro-ring-blue" aria-hidden="true"></span>
+    <button class="intro-enter" id="intro-enter" type="button" data-i18n-aria-label="gate.label" aria-label="Enter the site">
+      <span class="intro-pulse" aria-hidden="true"></span>
+      <svg class="intro-mark" viewBox="0 0 64 64" aria-hidden="true">
+        <rect class="blade blade-spine" x="10" y="8" width="9" height="48" rx="4.5"/>
+        <rect class="blade blade-1" x="10" y="8" width="44" height="10" rx="5"/>
+        <rect class="blade blade-2" x="10" y="27" width="34" height="10" rx="5"/>
+        <rect class="blade blade-3" x="10" y="46" width="44" height="10" rx="5"/>
+      </svg>
+    </button>
+    <span class="intro-word" aria-hidden="true">ECU</span>
+    <span class="intro-hint" id="intro-hint" data-i18n="gate.click">Click to enter</span>
+    <button class="intro-skip" id="intro-skip" type="button" data-i18n="gate.skip">Skip intro</button>
   </div>
 
   <div class="backdrop" aria-hidden="true">

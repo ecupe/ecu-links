@@ -81,19 +81,134 @@
     targets.forEach((element) => observer.observe(element));
   }
 
-  /* ── Intro → ready ───────────────────────────────────────── */
-  let seen = false;
-  try { seen = sessionStorage.getItem("ecu-intro") === "1"; } catch (_) { /* storage blocked */ }
-  const skipIntro = reduced || seen;
-  if (skipIntro) root.classList.add("skip-intro");
-  try { sessionStorage.setItem("ecu-intro", "1"); } catch (_) { /* storage blocked */ }
+  /* ── Intro gate → ready ──────────────────────────────────── */
+  // The head script already decided whether the gate shows (gate-open) or not (skip-intro).
   splitTitle();
+  let isReady = false;
   function ready() {
+    if (isReady) return;
+    isReady = true;
     root.classList.add("is-ready");
     revealHero();
     observeSections();
   }
-  window.setTimeout(ready, skipIntro ? 60 : 1750);
+  const gate = document.getElementById("intro");
+  if (!gate || !root.classList.contains("gate-open")) {
+    root.classList.remove("gate-open");
+    root.classList.add("skip-intro");
+    window.setTimeout(ready, 60);
+  } else {
+    setupGate(gate);
+  }
+
+  function setupGate(gate) {
+    const enter = document.getElementById("intro-enter");
+    const skip = document.getElementById("intro-skip");
+    const hint = document.getElementById("intro-hint");
+    const mark = gate.querySelector(".intro-mark");
+    // Everything behind the gate stays out of reach (focus, screen readers) until it opens.
+    const behind = Array.from(document.body.children).filter((el) => el !== gate && el.tagName !== "SCRIPT");
+    behind.forEach((el) => { el.inert = true; });
+    if (hint && !finePointer) {
+      hint.setAttribute("data-i18n", "gate.tap");
+      if (window.SiteI18n) hint.textContent = window.SiteI18n.t("gate.tap");
+    }
+    window.setTimeout(() => { try { enter.focus({ preventScroll: true }); } catch (_) { /* old browser */ } }, 400);
+
+    // Before the click: the logo leans toward the cursor and its blades spread as it gets close.
+    let tiltFrame = 0;
+    let lastMove = null;
+    function onMove(event) {
+      lastMove = event;
+      if (!tiltFrame) tiltFrame = requestAnimationFrame(applyTilt);
+    }
+    function applyTilt() {
+      tiltFrame = 0;
+      const box = enter.getBoundingClientRect();
+      const dx = lastMove.clientX - (box.left + box.width / 2);
+      const dy = lastMove.clientY - (box.top + box.height / 2);
+      const reach = Math.max(window.innerWidth, window.innerHeight) * 0.5;
+      const near = Math.max(0, 1 - Math.hypot(dx, dy) / reach);
+      mark.style.setProperty("--ry", (Math.max(-1, Math.min(1, dx / reach)) * 28).toFixed(1) + "deg");
+      mark.style.setProperty("--rx", (Math.max(-1, Math.min(1, -dy / reach)) * 28).toFixed(1) + "deg");
+      gate.style.setProperty("--spread", (EASE_OUT(near) * 1.1).toFixed(3));
+    }
+    if (finePointer) gate.addEventListener("pointermove", onMove);
+
+    function bassHit() {
+      // A short 808-style drop, synthesized (no file to download). Allowed because it follows a click.
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return;
+      try {
+        const audio = new Ctx();
+        const now = audio.currentTime;
+        const out = audio.createGain();
+        out.gain.value = 0.55;
+        out.connect(audio.destination);
+        const osc = audio.createOscillator();
+        const body = audio.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(150, now);
+        osc.frequency.exponentialRampToValueAtTime(42, now + 0.35);
+        body.gain.setValueAtTime(0.0001, now);
+        body.gain.exponentialRampToValueAtTime(1, now + 0.01);
+        body.gain.exponentialRampToValueAtTime(0.0001, now + 1.1);
+        osc.connect(body).connect(out);
+        osc.start(now);
+        osc.stop(now + 1.2);
+        // A bright shimmer on top so it reads on phone speakers too.
+        const shimmer = audio.createOscillator();
+        const shine = audio.createGain();
+        shimmer.type = "triangle";
+        shimmer.frequency.setValueAtTime(880, now);
+        shimmer.frequency.exponentialRampToValueAtTime(1760, now + 0.5);
+        shine.gain.setValueAtTime(0.0001, now);
+        shine.gain.exponentialRampToValueAtTime(0.12, now + 0.02);
+        shine.gain.exponentialRampToValueAtTime(0.0001, now + 0.7);
+        shimmer.connect(shine).connect(out);
+        shimmer.start(now);
+        shimmer.stop(now + 0.8);
+        window.setTimeout(() => audio.close(), 1500);
+      } catch (_) { /* audio is a bonus */ }
+    }
+
+    let opened = false;
+    function open(fast) {
+      if (opened) return;
+      opened = true;
+      try { sessionStorage.setItem("ecu-intro", "1"); } catch (_) { /* storage blocked */ }
+      gate.removeEventListener("pointermove", onMove);
+      behind.forEach((el) => { el.inert = false; });
+      gate.classList.add("is-leaving");
+      if (fast) gate.classList.add("is-skipping");
+      if (!fast) {
+        bassHit();
+        if (navigator.vibrate) { try { navigator.vibrate(18); } catch (_) { /* not allowed */ } }
+        const box = enter.getBoundingClientRect();
+        const x = box.left + box.width / 2;
+        const y = box.top + box.height / 2;
+        // Shatter: three waves of gold, blue and red shards.
+        burst(x, y, null, 60, 2.2);
+        window.setTimeout(() => burst(x, y, "#4f86f7", 30, 1.6), 90);
+        window.setTimeout(() => burst(x, y, "#ef4b55", 30, 1.3), 180);
+      }
+      root.classList.remove("gate-open");
+      window.setTimeout(ready, fast ? 120 : 420);
+      let done = false;
+      function finish() {
+        if (done) return;
+        done = true;
+        gate.classList.remove("is-leaving", "is-skipping");
+        gate.hidden = true;
+        root.classList.add("skip-intro");
+      }
+      gate.addEventListener("animationend", (event) => { if (event.target === gate) finish(); });
+      window.setTimeout(finish, 2000); // in case animations are paused (background tab)
+    }
+    enter.addEventListener("click", () => open(false));
+    skip.addEventListener("click", () => open(true));
+    document.addEventListener("keydown", (event) => { if (event.key === "Escape") open(true); });
+  }
 
   /* ── Top bar + hero parallax ─────────────────────────────── */
   const topbar = document.querySelector(".topbar");
@@ -191,17 +306,19 @@
     canvas.height = Math.round(window.innerHeight * ratio);
     context.setTransform(ratio, 0, 0, ratio, 0, 0);
   }
-  function burst(x, y, tint) {
+  function burst(x, y, tint, count, power) {
     if (!context) return;
     const colors = tint ? [tint, tint, "#ffffff", SPARK_COLORS[0]] : SPARK_COLORS;
-    for (let i = 0; i < 26; i += 1) {
+    const total = count || 26;
+    const boost = power || 1;
+    for (let i = 0; i < total; i += 1) {
       const angle = Math.random() * Math.PI * 2;
-      const speed = 2.2 + Math.random() * 4.6;
+      const speed = (2.2 + Math.random() * 4.6) * boost;
       particles.push({
         x, y,
         vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed - 1.2,
         life: 1, decay: 0.018 + Math.random() * 0.02,
-        size: 1.2 + Math.random() * 2.4,
+        size: (1.2 + Math.random() * 2.4) * (boost > 1 ? 1.4 : 1),
         color: colors[i % colors.length],
       });
     }

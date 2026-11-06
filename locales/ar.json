@@ -93,6 +93,10 @@
     "projects.intro": "ما وراء الموسيقى: أشياء أصممها وأبنيها باسم ECU.",
     "project.ecusystem": "موطن مشاريع ECU الخاصة بي على الويب.",
     "project.ecuLinks": "هذا الموقع: مشغّل موسيقى وديسكوغرافيا وروابط بسبع لغات، مبني بـ HTML وCSS وJavaScript فقط.",
-    "projects.open": "عرض المشروع"
+    "projects.open": "عرض المشروع",
+    "gate.click": "انقر للدخول",
+    "gate.tap": "المس للدخول",
+    "gate.skip": "تخطي المقدمة",
+    "gate.label": "ادخل إلى الموقع"
   }
 }
