@@ -1,17 +1,19 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-brand="ecu" data-root="">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#05060a">
-  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0a0a0b">
+  <meta name="color-scheme" content="dark light">
   <meta name="description" content="__DESCRIPTION__" data-i18n-content="meta.description">
   <meta property="og:title" content="__NAME__">
   <meta property="og:description" content="__DESCRIPTION__">
   <meta property="og:url" content="__SITE_URL__">
   <meta property="og:image" content="__SITE_URL__images/og-card.jpg">
+  <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary_large_image">
-  <title data-i18n="meta.title">__NAME__ | Music &amp; Links</title>
+  <link rel="canonical" href="__SITE_URL__">
+  <title data-i18n="meta.title">__NAME__ | Music, code &amp; games</title>
   <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
   <link rel="manifest" href="manifest.webmanifest">
@@ -20,6 +22,8 @@
   <link rel="preload" href="assets/fonts/sora-0.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="images/profile-320.webp" as="image" type="image/webp">
   <link rel="stylesheet" href="assets/css/site.css">
+  __EXTRA_STYLES__
+  <script type="application/ld+json">__JSON_LD__</script>
   <script>
     document.documentElement.classList.add("js");
     // Apply the saved theme before first paint so light mode never flashes dark.
@@ -29,42 +33,29 @@
     if ((navigator.deviceMemory && navigator.deviceMemory <= 2) || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2) || conn.saveData) {
       document.documentElement.classList.add("lite");
     }
-    // The click-to-enter intro shows once per visit. Skip it before first paint for returning
-    // visitors, reduced motion, and song links (someone sent a song; go straight to it).
+    // The opening plays itself once per visit and never takes input. Skip it before first paint
+    // for returning visitors, reduced motion, and song links (someone sent a song; go straight to it).
     var seenIntro = false;
     try { seenIntro = sessionStorage.getItem("ecu-intro") === "1"; } catch (_) {}
     if (seenIntro || /[?&]song=/.test(location.search) || (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches)) {
       document.documentElement.classList.add("skip-intro");
     } else {
-      document.documentElement.classList.add("gate-open");
+      document.documentElement.classList.add("intro-play");
     }
   </script>
 </head>
 <body>
-  <div class="intro" id="intro">
-    <span class="intro-ring intro-ring-gold" aria-hidden="true"></span>
-    <span class="intro-ring intro-ring-blue" aria-hidden="true"></span>
-    <button class="intro-enter" id="intro-enter" type="button" data-i18n-aria-label="gate.label" aria-label="Enter the site">
-      <span class="intro-pulse" aria-hidden="true"></span>
-      <svg class="intro-mark" viewBox="0 0 64 64" aria-hidden="true">
-        <rect class="blade blade-spine" x="10" y="8" width="9" height="48" rx="4.5"/>
-        <rect class="blade blade-1" x="10" y="8" width="44" height="10" rx="5"/>
-        <rect class="blade blade-2" x="10" y="27" width="34" height="10" rx="5"/>
-        <rect class="blade blade-3" x="10" y="46" width="44" height="10" rx="5"/>
-      </svg>
-    </button>
-    <span class="intro-word" aria-hidden="true">ECU</span>
-    <span class="intro-hint" id="intro-hint" data-i18n="gate.click">Click to enter</span>
-    <button class="intro-skip" id="intro-skip" type="button" data-i18n="gate.skip">Skip intro</button>
+  <div class="intro" id="intro" aria-hidden="true">
+    <svg class="intro-mark" viewBox="0 0 64 64">
+      <rect class="blade blade-spine" x="10" y="8" width="9" height="48" rx="4.5"/>
+      <rect class="blade blade-1" x="10" y="8" width="44" height="10" rx="5"/>
+      <rect class="blade blade-2" x="10" y="27" width="34" height="10" rx="5"/>
+      <rect class="blade blade-3" x="10" y="46" width="44" height="10" rx="5"/>
+    </svg>
+    <span class="intro-word">ECU</span>
   </div>
 
-  <div class="backdrop" aria-hidden="true">
-    <div class="aurora aurora-gold"></div>
-    <div class="aurora aurora-blue"></div>
-    <div class="aurora aurora-red"></div>
-    <div class="grid-lines"></div>
-    <div class="grain"></div>
-  </div>
+  <div class="backdrop" aria-hidden="true"><div class="grain"></div></div>
   <canvas id="sparks" class="sparks" aria-hidden="true"></canvas>
 
   <header class="topbar">
@@ -102,41 +93,51 @@
 
   <main id="top" class="site-shell">
     <header class="hero">
-      <div class="avatar" data-reveal>
-        <span class="avatar-glow" aria-hidden="true"></span>
-        <span class="avatar-ring" aria-hidden="true"></span>
-        <picture>
-          <source srcset="images/profile-320.webp 1x, images/profile-640.webp 2x" type="image/webp">
-          <img class="profile-photo" src="images/profile-320.jpg" srcset="images/profile-320.jpg 1x, images/profile-640.jpg 2x" alt="__NAME__" width="148" height="148" fetchpriority="high">
-        </picture>
-        <span class="avatar-live" aria-hidden="true"><i></i><i></i><i></i></span>
+      <div class="hero-meta">
+        <p class="eyebrow" data-reveal data-i18n="site.eyebrow">Artist · Producer · ECU</p>
+        <a class="hero-studio" data-reveal href="__STUDIO_PATH__/" data-goatcounter-click="hero-studio">__STUDIO_NAME__<svg class="link-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
       </div>
-      <p class="eyebrow" data-reveal data-i18n="site.eyebrow">Music &amp; connections</p>
-      <h1 class="hero-title" data-split>__NAME__</h1>
-      <p class="hero-subtitle" data-reveal data-i18n="content.tagline">__TAGLINE__</p>
-      <div class="hero-actions" data-reveal>
-        <button id="hero-listen" class="cta" type="button" data-magnetic>
-          <span class="cta-glow" aria-hidden="true"></span>
-          <span class="cta-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-            <span class="cta-eq"><i></i><i></i><i></i></span>
-          </span>
-          <span data-i18n="hero.listen">Listen now</span>
-        </button>
+      <div class="hero-stage">
+        <h1 class="hero-title" data-split>__TITLE_WORDS__</h1>
+        <div class="avatar" data-reveal>
+          <picture>
+            <source srcset="images/profile-320.webp 1x, images/profile-640.webp 2x" type="image/webp">
+            <img class="profile-photo" src="images/profile-320.jpg" srcset="images/profile-320.jpg 1x, images/profile-640.jpg 2x" alt="__NAME__" width="320" height="320" fetchpriority="high">
+          </picture>
+          <span class="avatar-live" aria-hidden="true"><i></i><i></i><i></i></span>
+        </div>
       </div>
-      <a class="scroll-cue" href="#links" aria-hidden="true" tabindex="-1"><span></span></a>
+      <div class="hero-foot">
+        <p class="hero-subtitle" data-reveal data-i18n="content.tagline">__TAGLINE__</p>
+        <div class="hero-actions" data-reveal>
+          <button id="hero-listen" class="cta" type="button" data-magnetic>
+            <span class="cta-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+              <span class="cta-eq"><i></i><i></i><i></i></span>
+            </span>
+            <span data-i18n="hero.listen">Listen now</span>
+          </button>
+        </div>
+        <a class="scroll-cue" href="#music" aria-hidden="true" tabindex="-1"><span data-i18n="hero.scroll">Scroll</span><i></i></a>
+      </div>
     </header>
 
-    <div id="links" class="sections-grid">__SECTIONS__
+    __MARQUEE__
+
+    <div id="links" class="sections">__SECTIONS__
     </div>
 
     <footer class="site-footer-wrap" data-reveal>
-      <span class="flag-stripe" aria-hidden="true"><i></i><i></i><i></i></span>
-      <p class="site-footer" data-i18n="site.footer">__NAME__ &middot; Music &amp; links</p>
-      <button id="install-app" class="install-app" type="button" hidden>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-4-4m4 4 4-4M5 21h14"/></svg>
-        <span data-i18n="app.install">Install app</span>
-      </button>
+      <div class="footer-word" aria-hidden="true">ECU</div>
+      <div class="footer-row">
+        <span class="flag-stripe" aria-hidden="true"><i></i><i></i><i></i></span>
+        <p class="site-footer"><span>© __YEAR__</span> <span data-i18n="site.footer">__NAME__ &middot; An ECU production</span></p>
+        <button id="install-app" class="install-app" type="button" hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-4-4m4 4 4-4M5 21h14"/></svg>
+          <span data-i18n="app.install">Install app</span>
+        </button>
+        <a class="footer-link" href="#top" data-i18n="footer.top">Back to top</a>
+      </div>
     </footer>
   </main>
 
@@ -234,6 +235,7 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
+  __DATA__
   <script id="track-data" type="application/json">__TRACK_DATA__</script>
   <script id="i18n-data" type="application/json">__I18N_DATA__</script>
   <script src="assets/js/i18n.js" defer></script>
@@ -241,6 +243,7 @@
   <script src="assets/js/motion.js" defer></script>
   <script src="assets/js/features.js" defer></script>
   <script src="assets/js/nav.js" defer></script>
+  __EXTRA_SCRIPTS__
   __ANALYTICS__
 </body>
 </html>

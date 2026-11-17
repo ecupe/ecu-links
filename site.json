@@ -18,23 +18,17 @@
   },
   "projects": [
     {
-      "name": "ECUSYSTEM",
-      "url": "https://ecusystem.dev",
-      "key": "ecusystem",
+      "name": "MECU Interactive",
+      "url": "mecu-interactive/",
+      "key": "mecu",
       "tags": [
-        "Web",
-        "Design"
-      ]
-    },
-    {
-      "name": "ECU Links",
-      "url": "https://github.com/ecupe/ecu-links",
-      "key": "ecuLinks",
-      "tags": [
-        "HTML",
-        "CSS",
-        "JS"
-      ]
+        "Game studio"
+      ],
+      "status": "new",
+      "year": "2026",
+      "featured": true,
+      "mark": "mecu",
+      "cta": "projects.enter"
     }
   ],
   "groups": [
@@ -138,5 +132,6 @@
       "accent": "#d8b5ff",
       "duration": 185.49551
     }
-  ]
+  ],
+  "instagram": "mateoamendano"
 }

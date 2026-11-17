@@ -1,22 +1,31 @@
 // Offline shell for the installable app. Pages are network-first (fresh when online),
 // static assets are served from cache and refreshed in the background, and songs
-// always stream from the network (they use range requests and are large).
-const CACHE = "ecu-links-v7";
+// and videos always stream from the network (they use range requests and are large).
+const CACHE = "ecu-links-v8";
 const SHELL = [
   "./",
   "index.html",
+  "mecu-interactive/",
   "assets/css/site.css",
+  "assets/css/studio.css",
+  "assets/css/media.css",
+  "assets/css/instagram.css",
   "assets/js/i18n.js",
   "assets/js/player.js",
   "assets/js/motion.js",
   "assets/js/features.js",
   "assets/js/nav.js",
+  "assets/js/media.js",
+  "assets/js/instagram.js",
+  "assets/js/studio.js",
   "assets/fonts/sora-0.woff2",
   "assets/fonts/sora-1.woff2",
   "images/favicon.svg",
   "images/profile-320.webp",
   "images/profile-640.webp",
   "images/qr.svg",
+  "images/mecu/mark.webp",
+  "images/mecu/wordmark.webp",
   "images/covers/amor-por-aqui-amor-por-alla.jpg",
   "images/covers/my-life.jpg",
   "images/covers/millones-mas.jpg",
@@ -38,7 +47,7 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const request = event.request;
   const url = new URL(request.url);
-  if (request.method !== "GET" || url.origin !== location.origin || url.pathname.includes("/audio/")) return;
+  if (request.method !== "GET" || url.origin !== location.origin || url.pathname.includes("/audio/") || url.pathname.includes("/media/")) return;
 
   if (request.mode === "navigate") {
     event.respondWith(

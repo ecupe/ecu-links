@@ -1,6 +1,6 @@
 (() => {
   "use strict";
-  // Page choreography: intro, staged reveals, scroll parallax, cursor light,
+  // Page choreography: opening, staged reveals, scroll parallax, project previews,
   // 3D tilt, magnetic buttons, and spark bursts. Everything is decorative;
   // with reduced motion the page simply appears in its final state.
   const root = document.documentElement;
@@ -10,41 +10,40 @@
   const SPARK_COLORS = ["#f5c84b", "#4f86f7", "#ef4b55", "#ffffff"];
 
   /* ── Title split ─────────────────────────────────────────── */
-  const title = document.querySelector("[data-split]");
-  const titleText = title ? title.textContent.trim() : "";
-  function splitTitle() {
-    if (!title || reduced) return;
-    title.setAttribute("aria-label", titleText);
+  // Big titles arrive as <span class="word"> per word; each letter then rises on its own.
+  const titles = Array.from(document.querySelectorAll("[data-split]"));
+  function splitTitles() {
+    if (reduced) return;
     let i = 0;
-    title.innerHTML = titleText.split(/\s+/).map((word) =>
-      '<span class="word" aria-hidden="true">' + Array.from(word).map((ch) =>
-        '<span class="char" style="--d:' + (0.25 + (i++) * 0.035).toFixed(3) + 's">' + ch + "</span>").join("")
-      + "</span>").join(" ");
-  }
-  function settleTitle() {
-    // Back to plain text so the brushed-metal gradient spans the whole name.
-    if (!title) return;
-    title.textContent = titleText;
-    title.removeAttribute("aria-label");
-    title.classList.add("sheen");
+    titles.forEach((title) => {
+      title.setAttribute("aria-label", title.textContent.trim().replace(/\s+/g, " "));
+      title.querySelectorAll(".word").forEach((word) => {
+        word.setAttribute("aria-hidden", "true");
+        // Only Latin words split per letter; joined scripts (Arabic) rise as one piece.
+        const text = word.textContent;
+        const pieces = /^[ -ɏ]+$/.test(text) ? Array.from(text) : [text];
+        word.textContent = "";
+        pieces.forEach((piece) => {
+          const span = document.createElement("span");
+          span.className = "char";
+          span.style.setProperty("--d", (0.15 + (i++) * 0.03).toFixed(3) + "s");
+          span.textContent = piece;
+          word.append(span);
+        });
+      });
+    });
   }
 
   /* ── Reveals ─────────────────────────────────────────────── */
+  const heroSelector = ".hero, .page-hero";
   function revealHero() {
-    const hero = document.querySelector(".hero");
-    if (!hero) return;
-    const staged = [hero.querySelector(".avatar"), hero.querySelector(".eyebrow"), null,
-      hero.querySelector(".hero-subtitle"), hero.querySelector(".hero-actions")];
-    staged.forEach((element, index) => {
-      if (!element) return;
-      element.style.setProperty("--d", (index * 0.12).toFixed(2) + "s");
-      element.classList.add("is-in");
+    titles.forEach((title) => title.classList.add("is-in"));
+    document.querySelectorAll(heroSelector).forEach((hero) => {
+      hero.querySelectorAll("[data-reveal]").forEach((element, index) => {
+        element.style.setProperty("--d", (0.25 + index * 0.1).toFixed(2) + "s");
+        element.classList.add("is-in");
+      });
     });
-    if (title) {
-      title.classList.add("is-in");
-      const chars = title.querySelectorAll(".char").length;
-      window.setTimeout(settleTitle, reduced ? 0 : 1250 + chars * 35);
-    }
   }
 
   let pending = [];
@@ -62,7 +61,7 @@
 
   function observeSections() {
     const targets = Array.from(document.querySelectorAll("[data-reveal]"))
-      .filter((element) => !element.closest(".hero"));
+      .filter((element) => !element.closest(heroSelector));
     if (reduced || !("IntersectionObserver" in window)) {
       targets.forEach((element) => element.classList.add("is-in"));
       return;
@@ -81,9 +80,9 @@
     targets.forEach((element) => observer.observe(element));
   }
 
-  /* ── Intro gate → ready ──────────────────────────────────── */
-  // The head script already decided whether the gate shows (gate-open) or not (skip-intro).
-  splitTitle();
+  /* ── Opening → ready ─────────────────────────────────────── */
+  // The head script already decided whether the opening plays (intro-play) or not (skip-intro).
+  splitTitles();
   let isReady = false;
   function ready() {
     if (isReady) return;
@@ -91,123 +90,33 @@
     root.classList.add("is-ready");
     revealHero();
     observeSections();
+    onScroll();  // a page that fits the screen is already "at the bottom"
   }
-  const gate = document.getElementById("intro");
-  if (!gate || !root.classList.contains("gate-open")) {
-    root.classList.remove("gate-open");
+  if (document.getElementById("intro") && root.classList.contains("intro-play")) {
+    // The cover is pure decoration: it never takes input, and the first scroll, key or
+    // press ends it at once, so nobody waits for an animation.
+    try { sessionStorage.setItem("ecu-intro", "1"); } catch (_) { /* storage blocked */ }
+    const signals = ["wheel", "touchstart", "keydown", "pointerdown"];
+    let finished = false;
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      signals.forEach((name) => window.removeEventListener(name, hurry));
+      root.classList.remove("intro-play", "intro-fast");
+      root.classList.add("skip-intro");
+    };
+    const hurry = () => {
+      root.classList.add("intro-fast");
+      ready();
+      window.setTimeout(finish, 280);
+    };
+    signals.forEach((name) => window.addEventListener(name, hurry, { passive: true }));
+    window.setTimeout(ready, 720);    // the name starts rising as the cover lifts
+    window.setTimeout(finish, 1750);
+  } else {
+    root.classList.remove("intro-play");
     root.classList.add("skip-intro");
     window.setTimeout(ready, 60);
-  } else {
-    setupGate(gate);
-  }
-
-  function setupGate(gate) {
-    const enter = document.getElementById("intro-enter");
-    const skip = document.getElementById("intro-skip");
-    const hint = document.getElementById("intro-hint");
-    const mark = gate.querySelector(".intro-mark");
-    // Everything behind the gate stays out of reach (focus, screen readers) until it opens.
-    const behind = Array.from(document.body.children).filter((el) => el !== gate && el.tagName !== "SCRIPT");
-    behind.forEach((el) => { el.inert = true; });
-    if (hint && !finePointer) {
-      hint.setAttribute("data-i18n", "gate.tap");
-      if (window.SiteI18n) hint.textContent = window.SiteI18n.t("gate.tap");
-    }
-    window.setTimeout(() => { try { enter.focus({ preventScroll: true }); } catch (_) { /* old browser */ } }, 400);
-
-    // Before the click: the logo leans toward the cursor and its blades spread as it gets close.
-    let tiltFrame = 0;
-    let lastMove = null;
-    function onMove(event) {
-      lastMove = event;
-      if (!tiltFrame) tiltFrame = requestAnimationFrame(applyTilt);
-    }
-    function applyTilt() {
-      tiltFrame = 0;
-      const box = enter.getBoundingClientRect();
-      const dx = lastMove.clientX - (box.left + box.width / 2);
-      const dy = lastMove.clientY - (box.top + box.height / 2);
-      const reach = Math.max(window.innerWidth, window.innerHeight) * 0.5;
-      const near = Math.max(0, 1 - Math.hypot(dx, dy) / reach);
-      mark.style.setProperty("--ry", (Math.max(-1, Math.min(1, dx / reach)) * 28).toFixed(1) + "deg");
-      mark.style.setProperty("--rx", (Math.max(-1, Math.min(1, -dy / reach)) * 28).toFixed(1) + "deg");
-      gate.style.setProperty("--spread", (EASE_OUT(near) * 1.1).toFixed(3));
-    }
-    if (finePointer) gate.addEventListener("pointermove", onMove);
-
-    function bassHit() {
-      // A short 808-style drop, synthesized (no file to download). Allowed because it follows a click.
-      const Ctx = window.AudioContext || window.webkitAudioContext;
-      if (!Ctx) return;
-      try {
-        const audio = new Ctx();
-        const now = audio.currentTime;
-        const out = audio.createGain();
-        out.gain.value = 0.55;
-        out.connect(audio.destination);
-        const osc = audio.createOscillator();
-        const body = audio.createGain();
-        osc.type = "sine";
-        osc.frequency.setValueAtTime(150, now);
-        osc.frequency.exponentialRampToValueAtTime(42, now + 0.35);
-        body.gain.setValueAtTime(0.0001, now);
-        body.gain.exponentialRampToValueAtTime(1, now + 0.01);
-        body.gain.exponentialRampToValueAtTime(0.0001, now + 1.1);
-        osc.connect(body).connect(out);
-        osc.start(now);
-        osc.stop(now + 1.2);
-        // A bright shimmer on top so it reads on phone speakers too.
-        const shimmer = audio.createOscillator();
-        const shine = audio.createGain();
-        shimmer.type = "triangle";
-        shimmer.frequency.setValueAtTime(880, now);
-        shimmer.frequency.exponentialRampToValueAtTime(1760, now + 0.5);
-        shine.gain.setValueAtTime(0.0001, now);
-        shine.gain.exponentialRampToValueAtTime(0.12, now + 0.02);
-        shine.gain.exponentialRampToValueAtTime(0.0001, now + 0.7);
-        shimmer.connect(shine).connect(out);
-        shimmer.start(now);
-        shimmer.stop(now + 0.8);
-        window.setTimeout(() => audio.close(), 1500);
-      } catch (_) { /* audio is a bonus */ }
-    }
-
-    let opened = false;
-    function open(fast) {
-      if (opened) return;
-      opened = true;
-      try { sessionStorage.setItem("ecu-intro", "1"); } catch (_) { /* storage blocked */ }
-      gate.removeEventListener("pointermove", onMove);
-      behind.forEach((el) => { el.inert = false; });
-      gate.classList.add("is-leaving");
-      if (fast) gate.classList.add("is-skipping");
-      if (!fast) {
-        bassHit();
-        if (navigator.vibrate) { try { navigator.vibrate(18); } catch (_) { /* not allowed */ } }
-        const box = enter.getBoundingClientRect();
-        const x = box.left + box.width / 2;
-        const y = box.top + box.height / 2;
-        // Shatter: three waves of gold, blue and red shards.
-        burst(x, y, null, 60, 2.2);
-        window.setTimeout(() => burst(x, y, "#4f86f7", 30, 1.6), 90);
-        window.setTimeout(() => burst(x, y, "#ef4b55", 30, 1.3), 180);
-      }
-      root.classList.remove("gate-open");
-      window.setTimeout(ready, fast ? 120 : 420);
-      let done = false;
-      function finish() {
-        if (done) return;
-        done = true;
-        gate.classList.remove("is-leaving", "is-skipping");
-        gate.hidden = true;
-        root.classList.add("skip-intro");
-      }
-      gate.addEventListener("animationend", (event) => { if (event.target === gate) finish(); });
-      window.setTimeout(finish, 2000); // in case animations are paused (background tab)
-    }
-    enter.addEventListener("click", () => open(false));
-    skip.addEventListener("click", () => open(true));
-    document.addEventListener("keydown", (event) => { if (event.key === "Escape") open(true); });
   }
 
   /* ── Top bar + hero parallax ─────────────────────────────── */
@@ -223,10 +132,16 @@
     if (pending.length && !revealTimer) {
       revealTimer = window.setTimeout(() => { revealTimer = 0; revealVisible(); }, 400);
     }
+    // At the very bottom nothing can scroll further into view, so show whatever is left
+    // (a short footer can sit below the reveal line forever).
+    if (pending.length && window.innerHeight + y >= document.documentElement.scrollHeight - 4) {
+      pending.forEach((element) => element.classList.add("is-in"));
+      pending = [];
+    }
     if (hero && !reduced) {
       const progress = Math.min(1, Math.max(0, y / (hero.offsetHeight * 0.9)));
-      hero.style.transform = "translateY(" + (progress * 60).toFixed(1) + "px) scale(" + (1 - progress * 0.06).toFixed(3) + ")";
-      hero.style.opacity = String(1 - EASE_OUT(progress) * 0.85);
+      hero.style.transform = "translateY(" + (progress * 48).toFixed(1) + "px)";
+      hero.style.opacity = String(1 - EASE_OUT(progress) * 0.7);
     }
   }
   window.addEventListener("scroll", () => {
@@ -236,23 +151,38 @@
 
   if (reduced) return;
 
-  /* ── Cursor light on cards and tiles ─────────────────────── */
+  /* ── Pointer effects (mouse only) ────────────────────────── */
   if (finePointer) {
-    // Pointer effects read layout once per frame at most, and only for the hovered element.
-    let lightFrame = 0;
-    let lightEvent = null;
-    document.addEventListener("pointermove", (event) => {
-      lightEvent = event;
-      if (lightFrame) return;
-      lightFrame = window.requestAnimationFrame(() => {
-        lightFrame = 0;
-        const tile = lightEvent.target.closest && lightEvent.target.closest(".link-button");
-        if (!tile) return;
-        const box = tile.getBoundingClientRect();
-        tile.style.setProperty("--mx", (lightEvent.clientX - box.left).toFixed(0) + "px");
-        tile.style.setProperty("--my", (lightEvent.clientY - box.top).toFixed(0) + "px");
+    /* Project rows: a thumbnail follows the cursor. */
+    const preview = document.querySelector(".project-preview");
+    const previewImage = preview && preview.querySelector("img");
+    if (preview) {
+      let previewFrame = 0;
+      let last = null;
+      let lastX = 0;
+      const place = () => {
+        previewFrame = 0;
+        preview.style.setProperty("--px", last.clientX + "px");
+        preview.style.setProperty("--py", last.clientY + "px");
+        // Lean a little in the direction of travel.
+        preview.style.setProperty("--pr", Math.max(-8, Math.min(8, (last.clientX - lastX) * 0.6)).toFixed(1) + "deg");
+        lastX = last.clientX;
+      };
+      document.querySelectorAll(".project-row[data-preview]").forEach((row) => {
+        row.addEventListener("pointerenter", (event) => {
+          if (previewImage.getAttribute("src") !== row.dataset.preview) previewImage.src = row.dataset.preview;
+          last = event;
+          lastX = event.clientX;
+          place();
+          preview.classList.add("is-on");
+        });
+        row.addEventListener("pointermove", (event) => {
+          last = event;
+          if (!previewFrame) previewFrame = window.requestAnimationFrame(place);
+        });
+        row.addEventListener("pointerleave", () => preview.classList.remove("is-on"));
       });
-    }, { passive: true });
+    }
 
     /* 3D tilt */
     document.querySelectorAll("[data-tilt]").forEach((element) => {
@@ -346,19 +276,9 @@
     window.addEventListener("resize", sizeCanvas);
   }
   document.addEventListener("pointerdown", (event) => {
-    const target = event.target.closest(".link-button, .release-link, .track-card, .cta");
+    const target = event.target.closest(".release-link, .track-card, .cta");
     if (!target) return;
-    const tint = getComputedStyle(target).getPropertyValue("--brand").trim()
-      || getComputedStyle(target).getPropertyValue("--accent").trim();
+    const tint = getComputedStyle(target).getPropertyValue("--accent").trim();
     burst(event.clientX, event.clientY, tint || null);
-    if (!target.classList.contains("link-button")) return;
-    const box = target.getBoundingClientRect();
-    const ripple = document.createElement("span");
-    const size = Math.max(box.width, box.height) * 2.2;
-    ripple.className = "ripple";
-    ripple.style.cssText = "left:" + (event.clientX - box.left) + "px;top:" + (event.clientY - box.top)
-      + "px;width:" + size + "px;height:" + size + "px";
-    target.append(ripple);
-    ripple.addEventListener("animationend", () => ripple.remove());
   });
 })();

@@ -8,7 +8,9 @@
   const topbar = document.querySelector(".topbar");
   if (!nav || !toggle) return;
 
-  const links = Array.from(nav.querySelectorAll(".nav-link"));
+  // Links that leave the page (.nav-out) close the menu but are not tracked while scrolling.
+  const allLinks = Array.from(nav.querySelectorAll(".nav-link"));
+  const links = allLinks.filter((link) => !link.classList.contains("nav-out"));
   const indicator = nav.querySelector(".nav-indicator");
   const targets = links.map((link) => document.getElementById(link.hash.slice(1)));
   const mobile = window.matchMedia("(max-width: 960px)");
@@ -36,6 +38,7 @@
 
   function spy() {
     frame = 0;
+    if (!links.length) return;
     const line = window.innerHeight * 0.35;
     let current = links[0];
     targets.forEach((target, index) => {
@@ -58,7 +61,7 @@
   }
 
   toggle.addEventListener("click", () => setOpen(toggle.getAttribute("aria-expanded") !== "true"));
-  links.forEach((link) => link.addEventListener("click", () => setOpen(false)));
+  allLinks.forEach((link) => link.addEventListener("click", () => setOpen(false)));
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && toggle.getAttribute("aria-expanded") === "true") {
       setOpen(false);

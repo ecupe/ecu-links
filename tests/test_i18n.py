@@ -223,32 +223,43 @@ class LocalizationBrowserTests(unittest.TestCase):
         self.assertEqual(self.page.locator("#hero-listen").text_content().strip(), "Jetzt anhören")
         self.page.click("#play-button")
 
-    def test_intro_gate(self):
+    def test_opening_plays_itself_and_never_blocks(self):
         context = self.raw_context(locale="en-US", viewport={"width": 1280, "height": 900})
         page = context.new_page()
         page.goto(self.url)
-        page.wait_for_selector("#intro-enter", state="visible")
-        self.assertTrue(page.evaluate("document.documentElement.classList.contains('gate-open')"))
-        self.assertTrue(page.evaluate("document.querySelector('.topbar').inert"))
-        self.assertFalse(page.evaluate("document.documentElement.classList.contains('is-ready')"))
-        page.click("#intro-enter")
-        page.wait_for_function("document.documentElement.classList.contains('is-ready')"
-                               " && document.getElementById('intro').hidden")
+        self.assertTrue(page.evaluate("document.documentElement.classList.contains('intro-play')"))
+        # Nothing is inert and the cover takes no input: the page under it is usable at once.
         self.assertFalse(page.evaluate("document.querySelector('.topbar').inert"))
+        self.assertEqual(page.evaluate("getComputedStyle(document.getElementById('intro')).pointerEvents"), "none")
+        self.assertEqual(page.locator("#intro button, #intro a, #intro [tabindex]").count(), 0)
+        self.assertEqual(page.evaluate("document.elementFromPoint(640, 30).closest('.topbar') !== null"), True)
+        # It finishes on its own, with no click.
+        page.wait_for_function("document.documentElement.classList.contains('is-ready')"
+                               " && document.documentElement.classList.contains('skip-intro')"
+                               " && !document.documentElement.classList.contains('intro-play')", timeout=4000)
+        self.assertFalse(page.is_visible("#intro"))
         page.reload()  # once per visit: a reload goes straight in
+        self.assertFalse(page.evaluate("document.documentElement.classList.contains('intro-play')"))
         page.wait_for_function("document.documentElement.classList.contains('is-ready')")
-        self.assertTrue(page.evaluate("document.documentElement.classList.contains('skip-intro')"))
         context.close()
 
         context = self.raw_context(locale="en-US")
         page = context.new_page()
-        page.goto(self.url + "?song=millones-mas")  # shared song links skip the gate
+        page.goto(self.url + "?song=millones-mas")  # shared song links skip the opening
+        self.assertFalse(page.evaluate("document.documentElement.classList.contains('intro-play')"))
         page.wait_for_function("document.documentElement.classList.contains('is-ready')")
         self.assertFalse(page.is_visible("#intro"))
-        page.goto(self.url.replace("127.0.0.1", "localhost"))  # fresh origin storage, use Escape
-        page.wait_for_selector("#intro-enter", state="visible")
-        page.keyboard.press("Escape")
-        page.wait_for_function("document.documentElement.classList.contains('is-ready')")
+        page.goto(self.url.replace("127.0.0.1", "localhost"))  # fresh origin storage: a key press ends it early
+        self.assertTrue(page.evaluate("document.documentElement.classList.contains('intro-play')"))
+        page.keyboard.press("ArrowDown")
+        page.wait_for_function("document.documentElement.classList.contains('skip-intro')", timeout=1500)
+        context.close()
+
+        context = self.raw_context(locale="en-US", reduced_motion="reduce")
+        page = context.new_page()
+        page.goto(self.url)  # reduced motion: no opening at all
+        self.assertFalse(page.evaluate("document.documentElement.classList.contains('intro-play')"))
+        self.assertFalse(page.is_visible("#intro"))
         context.close()
 
     def test_sections_reveal_on_scroll_and_without_motion(self):
@@ -329,14 +340,14 @@ class LocalizationBrowserTests(unittest.TestCase):
 
     def test_countdown_flips_to_out_now(self):
         html = (ROOT / "index.html").read_text(encoding="utf-8")
-        card = ('<section class="link-section glass upcoming" data-reveal data-release="{}">'
+        card = ('<section class="upcoming" data-reveal data-release="{}">'
                 '<div class="countdown" data-when="before"><b data-unit="days">00</b><b data-unit="hours">00</b>'
                 '<b data-unit="minutes">00</b><b data-unit="seconds">00</b></div>'
                 '<a class="upcoming-action presave" href="#p">p</a><a class="upcoming-action listen" href="#l">l</a></section>')
         for release, out in (("2999-01-01T00:00:00Z", False), ("2001-01-01T00:00:00Z", True)):
             with self.subTest(out=out):
                 page = self.context.new_page()
-                body = html.replace('<div id="links" class="sections-grid">', '<div id="links" class="sections-grid">' + card.format(release))
+                body = html.replace('<div id="links" class="sections">', '<div id="links" class="sections">' + card.format(release))
                 def serve(route, body=body):
                     route.fulfill(status=200, content_type="text/html", body=body)
                 page.route(self.url, lambda route: serve(route))

@@ -1,0 +1,33 @@
+{
+  "name": "MECU Interactive",
+  "path": "mecu-interactive",
+  "instagram": "mecuinteractive",
+  "intro": {
+    "video": "media/mecu-intro.mp4",
+    "poster": "images/mecu/intro-poster.jpg"
+  },
+  "games": [
+    {
+      "slug": "wanderbud",
+      "title": "Wanderbud",
+      "status": "dev",
+      "cover": "",
+      "genre": "",
+      "platforms": [],
+      "trailer": "",
+      "gallery": [],
+      "links": []
+    }
+  ],
+  "updates": [
+    {
+      "key": "intro",
+      "date": "2026-11-14",
+      "tag": "announcement",
+      "game": "",
+      "image": "images/mecu/intro-poster.jpg",
+      "video": "media/mecu-intro.mp4",
+      "link": "https://www.instagram.com/reel/Dfty3cTs7NK/"
+    }
+  ]
+}

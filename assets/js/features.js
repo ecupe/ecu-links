@@ -127,7 +127,7 @@
       themeToggle.setAttribute("aria-label", t(light ? "theme.dark" : "theme.light"));
       themeToggle.title = themeToggle.getAttribute("aria-label");
     }
-    if (themeMeta) themeMeta.content = light ? "#f5f5f7" : "#05060a";
+    if (themeMeta) themeMeta.content = getComputedStyle(root).getPropertyValue("--bg").trim() || (light ? "#ecebe4" : "#0a0a0b");
   }
   if (themeToggle) {
     themeToggle.addEventListener("click", () => {
@@ -176,7 +176,8 @@
   /* ── Installable app ─────────────────────────────────────── */
   if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
     window.addEventListener("load", () => {
-      navigator.serviceWorker.register("sw.js").catch(() => { /* offline support is optional */ });
+      // Sub-pages sit one or more folders down; data-root points back to the site root.
+      navigator.serviceWorker.register((root.dataset.root || "") + "sw.js").catch(() => { /* offline support is optional */ });
     });
   }
   const installButton = byId("install-app");

@@ -1,0 +1,53 @@
+{
+  "handle": "mecuinteractive",
+  "url": "https://www.instagram.com/mecuinteractive/",
+  "posts": [
+    {
+      "id": "Dfty3cTs7NK",
+      "url": "https://www.instagram.com/reel/Dfty3cTs7NK/",
+      "image": "images/mecu/ig-intro.jpg",
+      "type": "reel",
+      "lang": "es",
+      "alt": "",
+      "caption": "Presentamos la intro oficial de MECU Interactive, nuestro estudio de desarrollo de videojuegos.",
+      "date": "2026-11-14",
+      "order": 1,
+      "visible": true
+    }
+  ],
+  "highlights": [
+    {
+      "id": "intro",
+      "title": "Intro",
+      "cover": "images/mecu/hl-intro.jpg",
+      "url": "",
+      "order": 1,
+      "visible": true,
+      "slides": [
+        {
+          "type": "video",
+          "src": "media/mecu-intro.mp4",
+          "poster": "images/mecu/intro-poster.jpg"
+        }
+      ]
+    },
+    {
+      "id": "brand",
+      "title": "Brand",
+      "cover": "images/mecu/hl-brand.jpg",
+      "url": "",
+      "order": 2,
+      "visible": true,
+      "slides": [
+        {
+          "type": "image",
+          "src": "images/mecu/ig-intro.jpg"
+        },
+        {
+          "type": "image",
+          "src": "images/mecu/banner.jpg"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,89 @@
+/* Instagram components (see instagram.py): highlights rail, post gallery and their states.
+   Loaded after site.css on any page that shows an account. Colours come from the page's
+   tokens, so the same components take the personal look or the studio look. */
+.ig{--ring:conic-gradient(from var(--angle),var(--gold),var(--red),var(--blue),var(--gold))}
+:root[data-brand="mecu"] .ig{--ring:conic-gradient(from var(--angle),var(--accent),var(--ink) 35%,var(--accent) 70%,var(--ink))}
+
+/* ───────── Heading row (personal site) ───────── */
+.about .ig{margin-top:clamp(56px,8vw,120px);scroll-margin-top:96px}
+.ig-head{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:end;gap:clamp(16px,3vw,48px);padding-top:18px;margin-bottom:clamp(28px,4vw,56px);border-top:1px solid var(--line-2)}
+.ig-title{font:800 clamp(2rem,5.4vw,5rem)/.9 var(--display);letter-spacing:-.05em;text-transform:uppercase}
+.ig-meta{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding-bottom:.35em}
+.ig-profile{display:inline-flex;align-items:center;gap:6px;font:500 12px/1.3 var(--mono);letter-spacing:.08em;text-transform:uppercase;border-bottom:1px solid var(--line-2);padding-bottom:3px;transition:border-color .3s}
+/* Handles read left to right in every language. */
+.ig-profile,.ig-handle{direction:ltr;unicode-bidi:isolate}
+.ig-profile:hover{border-color:var(--ink)}
+.ig-profile:hover .link-arrow{transform:translate(2px,-2px)}
+.ig-intro{color:var(--ink-2);font-size:clamp(.95rem,1.15vw,1.1rem)}
+
+/* ───────── InstagramHighlights / InstagramHighlight ───────── */
+.hl-wrap{margin-bottom:clamp(36px,5vw,72px)}
+.hl-rail{
+  position:relative;display:flex;gap:clamp(10px,1.8vw,24px);overflow-x:auto;overscroll-behavior-x:contain;
+  margin:0 calc(var(--gutter) * -1);padding:8px var(--gutter) 12px;scroll-padding-inline:var(--gutter);
+  scroll-snap-type:x proximity;scrollbar-width:none;
+  -webkit-mask:linear-gradient(90deg,transparent,#000 var(--gutter),#000 calc(100% - var(--gutter)),transparent);
+  mask:linear-gradient(90deg,transparent,#000 var(--gutter),#000 calc(100% - var(--gutter)),transparent);
+}
+.hl-rail::-webkit-scrollbar{display:none}
+.hl-rail li{flex:none;scroll-snap-align:start}
+.hl{position:relative;display:flex;flex-direction:column;align-items:center;gap:10px;width:96px;padding:0;border:0;background:none;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.hl:focus-visible{outline-offset:6px;border-radius:14px}
+.hl-ring{position:relative;display:block;width:88px;height:88px;padding:3px;border-radius:50%;background:var(--ring);transition:transform .5s var(--spring)}
+.hl-cover{display:block;width:100%;height:100%;border-radius:50%;border:3px solid var(--bg);overflow:hidden;background:var(--bg-2)}
+.hl-cover img{width:100%;height:100%;object-fit:cover;transition:transform .9s var(--ease)}
+.hl:hover .hl-ring,.hl:focus-visible .hl-ring{transform:scale(1.07);animation:ring-spin 2.4s linear infinite}
+.hl:hover .hl-cover img{transform:scale(1.08)}
+.hl:active .hl-ring{transform:scale(.95)}
+@keyframes ring-spin{to{--angle:360deg}}
+.hl-title{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:500 12px/1.3 var(--body);color:var(--ink-2);transition:color .3s}
+.hl:hover .hl-title,.hl:focus-visible .hl-title{color:var(--ink)}
+.hl.is-error .hl-cover img{display:none}
+
+/* ───────── InstagramGallery / InstagramPostCard ───────── */
+.ig-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(8px,1.4vw,22px)}
+.ig-item{min-width:0}
+.ig-post{position:relative;display:block;aspect-ratio:4/5;border-radius:var(--radius);overflow:hidden;background:var(--bg-2);border:1px solid var(--line);color:#f4f1e6;isolation:isolate}
+.ig-media{position:absolute;inset:0;display:grid;place-items:center}
+.ig-media img{width:100%;height:100%;object-fit:cover;transition:transform 1.2s var(--ease)}
+.ig-post:hover .ig-media img,.ig-post:focus-visible .ig-media img{transform:scale(1.06)}
+/* Loading: a slow sheen behind the picture until it arrives (instagram.js adds the classes). */
+.js .ig-post:not(.is-loaded):not(.is-error) .ig-media{background:linear-gradient(100deg,transparent 40%,rgba(var(--tint),.1) 50%,transparent 60%) 0 0/300% 100%;animation:ig-sheen 1.6s linear infinite}
+@keyframes ig-sheen{from{background-position:100% 0}to{background-position:-100% 0}}
+/* Error: the picture is gone but the tile still says what it is and still opens the post. */
+.ig-post.is-error .ig-media img{display:none}
+.ig-post.is-error .ig-media::after{content:"";width:38px;height:38px;border:1.5px solid var(--ink-3);border-radius:11px;background:radial-gradient(circle,var(--ink-3) 0 4px,transparent 4.5px)}
+.ig-post.is-error{color:var(--ink)}
+.ig-post.is-error .ig-caption{background:none;opacity:1;transform:none}
+.ig-badge{position:absolute;top:12px;inset-inline-end:12px;z-index:1;display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:rgba(0,0,0,.6);color:#f4f1e6;font:500 11px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase}
+.ig-badge svg{width:11px;height:11px}
+.ig-badge svg:not([fill="none"]){fill:currentColor}
+.ig-caption{
+  position:absolute;inset:auto 0 0;z-index:1;display:flex;flex-direction:column;gap:8px;padding:56px 16px 16px;
+  background:linear-gradient(transparent,rgba(0,0,0,.9) 46%);font-size:13px;line-height:1.4;
+  opacity:0;transform:translateY(10px);transition:opacity .4s var(--ease),transform .5s var(--ease);
+}
+.ig-text{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.ig-date{font:500 11px/1 var(--mono);letter-spacing:.08em;opacity:.7}
+.ig-open{display:inline-flex;align-items:center;gap:6px;font:500 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.ig-post:hover .ig-caption,.ig-post:focus-visible .ig-caption{opacity:1;transform:none}
+@media (hover:none){.ig-caption{opacity:1;transform:none}}
+.ig-follow{display:flex;flex-direction:column;justify-content:flex-end;gap:10px;height:100%;aspect-ratio:4/5;padding:18px;border:1px dashed var(--line-2);border-radius:var(--radius);color:var(--ink-2);font-size:14px;transition:border-color .3s,color .3s}
+.ig-follow:hover{border-color:var(--ink);color:var(--ink)}
+.ig-follow .link-icon{width:26px;height:26px;margin-bottom:auto;color:var(--ink)}
+.ig-handle{font:700 clamp(.8rem,3.3vw,1.3rem)/1.1 var(--display);letter-spacing:-.03em;color:var(--ink);overflow-wrap:anywhere}
+.ig-actions{margin-top:clamp(24px,3vw,40px)}
+
+@media (max-width:900px){
+  .ig-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ig-head{grid-template-columns:minmax(0,1fr) auto}
+  .ig-title{grid-column:1/-1}
+}
+@media (max-width:560px){
+  .ig-head{grid-template-columns:1fr}
+  .hl{width:78px}
+  .hl-ring{width:72px;height:72px}
+}
+@media (prefers-reduced-motion:reduce){
+  .js .ig-post .ig-media{animation:none}
+}
